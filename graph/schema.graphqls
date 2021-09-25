@@ -39,9 +39,9 @@ input UserAuth {
 }
 
 type Query {
-  todos(list: ID!): [ID!]!
+  todos(list: ID!): [Todo!]
   lists: [ID!]!
-  users: [ID!]!
+  users: [User!]!
 }
 
 input NewTodo {
