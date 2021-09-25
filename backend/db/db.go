@@ -98,9 +98,32 @@ func CreateList(user int64, name string) (*int64, error) {
 func GetTodo(id int64) (*model.Todo, error) {
 	todo := model.Todo{
 		ID: id,
+		Dependencies: []*model.Dependency{},
 	}
 	if err := db.QueryRow("select todoName, createdAt, modifiedAt, completedAt, todoList from todos where id = ?", id).Scan(&todo.Name, &todo.CreatedAt, &todo.ModifiedAt, &todo.CompletedAt, &todo.List); err != nil {
 		return nil, err
+	}
+	rows, err := db.Query("select dependent from dependencies where dependsOn = ?", id)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, err
+	}
+	for rows.Next() {
+		dependency := model.Dependency{DependsOn: id}
+		if err := rows.Scan(&dependency.Dependent); err != nil {
+			return nil, err
+		}
+		todo.Dependencies = append(todo.Dependencies, &dependency)
+	}
+	rows, err = db.Query("select dependsOn from dependencies where dependent = ?", id)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, err
+	}
+	for rows.Next() {
+		dependency := model.Dependency{Dependent: id}
+		if err := rows.Scan(&dependency.DependsOn); err != nil {
+			return nil, err
+		}
+		todo.Dependencies = append(todo.Dependencies, &dependency)
 	}
 	return &todo, nil
 }
