@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/cass-dlcm/pomodoro_tasks/backend/auth"
+	"github.com/cass-dlcm/pomodoro_tasks/backend/db"
 	"log"
 	"net/http"
 	"os"
@@ -19,6 +20,8 @@ func main() {
 	if port == "" {
 		port = defaultPort
 	}
+
+	db.InitDB()
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
 

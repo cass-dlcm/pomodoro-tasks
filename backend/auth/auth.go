@@ -18,10 +18,12 @@ const SECRETKEY = "key"
 
 func JWTMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println("starting middleware")
 		authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
 		if len(authHeader) != 2 {
 			log.Println("Malformed token")
 			next.ServeHTTP(w, r)
+			return
 		}
 		jwtToken := authHeader[1]
 		token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
@@ -120,9 +122,8 @@ func CheckPermsTodo(todoId int64, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	var userInList int64
-	for userInList = range taskList.Users {
-		if user.ID == userInList {
+	for i := 0; i < len(taskList.Users); i++ {
+		if user.ID == taskList.Users[i] {
 			return nil
 		}
 	}
@@ -138,9 +139,8 @@ func CheckPermsList(listId int64, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	var userInList int64
-	for userInList = range taskList.Users {
-		if user.ID == userInList {
+	for i := 0; i < len(taskList.Users); i++ {
+		if user.ID == taskList.Users[i] {
 			return nil
 		}
 	}
