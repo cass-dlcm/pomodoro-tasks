@@ -1,0 +1,42 @@
+* {
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+.background {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    background-color: #A5C7F3;
+}
+
+.sec1 {
+    height: 100vh;
+    width: 100vw;
+}
+
+.sec1 img {
+    height: 38rem;
+    width: 38rem;
+    padding-left: 50px;
+}
+
+.sec2 {   
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.sec2 img {
+    height: 38rem;
+    width: 32rem;
+    padding-right: 100px;
+}
+
+.loginSection {
+    height: 20rem;
+    width: 20rem;
+    position: absolute;
+}
