@@ -14,16 +14,49 @@ import (
 	"github.com/cass-dlcm/pomodoro_tasks/graph/model"
 )
 
+func (r *mutationResolver) AddDependencyTodo(ctx context.Context, dependent int64, dependsOn int64) (*model.Dependency, error) {
+	if err := auth.CheckPermsTodo(dependent, ctx); err != nil {
+		return nil, err
+	}
+	if err := auth.CheckPermsTodo(dependsOn, ctx); err != nil {
+		return nil, err
+	}
+	if ok, err := db.CheckSameList(dependent, dependsOn); err != nil || !ok {
+		return nil, err
+	}
+	if found, err := db.CheckDependency(dependent, dependsOn); found == true {
+		return nil, err
+	}
+	return db.AddDependency(dependent, dependsOn)
+}
+
+func (r *mutationResolver) RemoveDependencyTodo(ctx context.Context, dependent int64, dependsOn int64) (bool, error) {
+	if err := auth.CheckPermsTodo(dependent, ctx); err != nil {
+		return false, err
+	}
+	if err := auth.CheckPermsTodo(dependsOn, ctx); err != nil {
+		return false, err
+	}
+	if ok, err := db.CheckSameList(dependent, dependsOn); err != nil || !ok {
+		return true, err
+	}
+	if found, err := db.CheckDependency(dependent, dependsOn); found == false {
+		return true, err
+	}
+	return db.RemoveDependency(dependent, dependsOn)
+}
+
 func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
 	if _, err := db.GetUserUsername(auth.GetUsername(ctx)); err != nil {
 		return nil, err
 	}
 	todo := &model.Todo{
-		Name:        input.Name,
-		CreatedAt:   time.Now(),
-		ModifiedAt:  time.Now(),
-		CompletedAt: nil,
-		List:        input.List,
+		Name:         input.Name,
+		CreatedAt:    time.Now(),
+		ModifiedAt:   time.Now(),
+		CompletedAt:  nil,
+		List:         input.List,
+		Dependencies: nil,
 	}
 	todoId, err := db.CreateTodo(*todo)
 	if err != nil {

@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+type Dependency struct {
+	Dependent int64 `json:"dependent"`
+	DependsOn int64 `json:"dependsOn"`
+}
+
 type NewTodo struct {
 	Name string `json:"name"`
 	List int64  `json:"list"`
@@ -19,12 +24,14 @@ type TaskList struct {
 }
 
 type Todo struct {
-	ID          int64      `json:"id"`
-	Name        string     `json:"name"`
-	CreatedAt   time.Time  `json:"createdAt"`
-	ModifiedAt  time.Time  `json:"modifiedAt"`
-	CompletedAt *time.Time `json:"completedAt"`
-	List        int64      `json:"list"`
+	ID           int64         `json:"id"`
+	Name         string        `json:"name"`
+	Description  *string       `json:"description"`
+	CreatedAt    time.Time     `json:"createdAt"`
+	ModifiedAt   time.Time     `json:"modifiedAt"`
+	CompletedAt  *time.Time    `json:"completedAt"`
+	List         int64         `json:"list"`
+	Dependencies []*Dependency `json:"dependencies"`
 }
 
 type User struct {

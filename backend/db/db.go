@@ -62,23 +62,6 @@ func CreateUser(user model.UserAuth) (int64, error) {
 	return res.LastInsertId()
 }
 
-func GetUser(id int64) (*model.User, error) {
-	user := &model.User{
-		ID:    0,
-		Name:  "",
-		Lists: []int64{},
-	}
-	if err := db.QueryRow("select id, username from users where id = ?", id).Scan(&user.ID, &user.Name); err != nil {
-		return nil, err
-	}
-	var err error
-	user.Lists, err = GetTaskListsUser(id)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return nil, err
-	}
-	return user, nil
-}
-
 func GetTaskListsUser(id int64) ([]int64, error) {
 	taskLists := []int64{}
 	rows, err := db.Query("select todoList from tasklist_user_link where user = ?", id)
@@ -199,4 +182,42 @@ func UpdateCompletionTodo(id int64) (*model.Todo, error) {
 		return nil, err
 	}
 	return GetTodo(id)
+}
+
+func CheckDependency(dependent, dependsOn int64) (bool, error) {
+	dependency := model.Dependency{}
+	if err := db.QueryRow("select from dependencies where dependent = ? and dependsOn = ?", dependent, dependsOn).Scan(&dependency.Dependent, &dependency.DependsOn); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func AddDependency(dependent, dependsOn int64) (*model.Dependency, error) {
+	dependency := model.Dependency{
+		Dependent: dependent,
+		DependsOn: dependsOn,
+	}
+	if _, err := db.Exec("insert into dependencies (dependent, dependsOn) values (?, ?)", dependent, dependsOn); err != nil {
+		return nil, err
+	}
+	return &dependency, nil
+}
+
+func RemoveDependency(dependent, dependsOn int64) (bool, error) {
+	if _, err := db.Exec("delete from dependencies where dependent = ? and dependsOn = ?", dependent, dependsOn); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func CheckSameList(dependent, dependsOn int64) (bool, error) {
+	dependentTodo, err := GetTodo(dependent)
+	if err != nil {
+		return false, err
+	}
+	dependsOnTodo, err := GetTodo(dependsOn)
+	if err != nil {
+		return false, err
+	}
+	return dependentTodo.List == dependsOnTodo.List, nil
 }
