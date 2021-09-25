@@ -139,6 +139,7 @@ func GetListOnlyUsers(listId int64) (*model.TaskList, error) {
 		}
 		taskList.Users = append(taskList.Users, userid)
 	}
+	return taskList, nil
 }
 
 func GetListOnlyTasks(listId int64) (*model.TaskList, error) {
