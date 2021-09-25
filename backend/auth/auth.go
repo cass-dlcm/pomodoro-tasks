@@ -18,7 +18,6 @@ const SECRETKEY = "key"
 
 func JWTMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println("starting middleware")
 		authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
 		if len(authHeader) != 2 {
 			log.Println("Malformed token")
@@ -35,12 +34,16 @@ func JWTMiddleware(next http.Handler) http.Handler {
 		if err != nil {
 			log.Println(err)
 		}
-		if claims, ok := token.Claims.(customClaims); ok && token.Valid {
-			ctx := context.WithValue(r.Context(), "props", claims)
+		log.Println(token.Valid)
+		if token.Valid {
+			ctx := context.WithValue(r.Context(), "user", token.Claims)
 			// Access context values in handlers like this
 			// props, _ := r.Context().Value("props").(jwt.MapClaims)
+			log.Println(token.Claims.(jwt.MapClaims)["Username"])
 			next.ServeHTTP(w, r.WithContext(ctx))
 		} else {
+			log.Println("claims not okay")
+			log.Println(token.Claims)
 			next.ServeHTTP(w, r)
 		}
 	})
@@ -55,7 +58,7 @@ func CreateToken(user string) (string, error) {
 	claims := customClaims{
 		Username: user,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Minute * 1).Unix(),
+			ExpiresAt: time.Now().Add(time.Minute * 10).Unix(),
 			Issuer:    "pomodoro-tasks",
 		},
 	}
@@ -71,14 +74,20 @@ func CreateUser(user model.UserAuth) (*model.User, error) {
 		return nil, errors.New("user already exists")
 	}
 	newUserAuth := model.UserAuth{
-		Name: user.Name,
+		Name:     user.Name,
 		Password: hashAndSalt([]byte(user.Password)),
 	}
-	newUser, err := db.CreateUser(newUserAuth)
+	log.Println(newUserAuth.Password)
+	newUser := &model.User{
+		Name:  user.Name,
+		Lists: nil,
+	}
+	var err error
+	newUser.ID, err = db.CreateUser(newUserAuth)
 	if err != nil {
 		return nil, err
 	}
-	list, err := db.CreateList(*newUser, "My List")
+	list, err := db.CreateList(newUser.ID, "My List")
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +115,10 @@ func hashAndSalt(pwd []byte) string {
 }
 
 func GetUsername(ctx context.Context) string {
-	return ctx.Value("user").(customClaims).Username
+	if ctx.Value("user").(jwt.MapClaims)["username"] == nil {
+		return ""
+	}
+	return ctx.Value("user").(jwt.MapClaims)["username"].(string)
 }
 
 func CheckPermsTodo(todoId int64, ctx context.Context) error {

@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/cass-dlcm/pomodoro_tasks/backend/auth"
@@ -13,7 +14,7 @@ import (
 	"github.com/cass-dlcm/pomodoro_tasks/graph/model"
 )
 
-func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo, list string) (*model.Todo, error) {
+func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
 	if _, err := db.GetUserUsername(auth.GetUsername(ctx)); err != nil {
 		return nil, err
 	}
@@ -76,9 +77,13 @@ func (r *queryResolver) Todos(ctx context.Context, list int64) (*model.TaskList,
 }
 
 func (r *queryResolver) Lists(ctx context.Context) ([]int64, error) {
-	user, err := db.GetUserUsername(auth.GetUsername(ctx))
+	username := auth.GetUsername(ctx)
+	if username == "" {
+		return nil, errors.New("user was not found")
+	}
+	user, err := db.GetUserUsername(username)
 	if err != nil {
-		 return nil, err
+		return nil, err
 	}
 	return db.GetTaskListsUser(user.ID)
 }

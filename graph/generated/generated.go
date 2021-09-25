@@ -46,7 +46,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		CreateTodo        func(childComplexity int, input model.NewTodo, list string) int
+		CreateTodo        func(childComplexity int, input model.NewTodo) int
 		CreateUser        func(childComplexity int, user model.UserAuth) int
 		DeleteTodo        func(childComplexity int, input int64) int
 		MarkCompletedTodo func(childComplexity int, input int64) int
@@ -83,7 +83,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	CreateTodo(ctx context.Context, input model.NewTodo, list string) (*model.Todo, error)
+	CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error)
 	RenameTodo(ctx context.Context, id int64, newName string) (*model.Todo, error)
 	DeleteTodo(ctx context.Context, input int64) (bool, error)
 	MarkCompletedTodo(ctx context.Context, input int64) (*model.Todo, error)
@@ -120,7 +120,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateTodo(childComplexity, args["input"].(model.NewTodo), args["list"].(string)), true
+		return e.complexity.Mutation.CreateTodo(childComplexity, args["input"].(model.NewTodo)), true
 
 	case "Mutation.createUser":
 		if e.complexity.Mutation.CreateUser == nil {
@@ -412,7 +412,7 @@ type Mutation {
 #  removeUsersFromList(listName: String!, users: [ID!]!): TaskList
 #  addDependencyTodo(dependant: ID!, dependsOn: ID!): Dependency
 #  removeDependencyTodo(dependant: ID!, dependsOn: ID!): Boolean
-  createTodo(input: NewTodo!, list: String!): Todo
+  createTodo(input: NewTodo!): Todo
   renameTodo(id: ID!, newName: String!): Todo
   deleteTodo(input: ID!): Boolean!
   markCompletedTodo(input: ID!): Todo
@@ -439,15 +439,6 @@ func (ec *executionContext) field_Mutation_createTodo_args(ctx context.Context, 
 		}
 	}
 	args["input"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["list"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("list"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["list"] = arg1
 	return args, nil
 }
 
@@ -628,7 +619,7 @@ func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTodo(rctx, args["input"].(model.NewTodo), args["list"].(string))
+		return ec.resolvers.Mutation().CreateTodo(rctx, args["input"].(model.NewTodo))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

@@ -54,7 +54,7 @@ type Mutation {
 #  removeUsersFromList(listName: String!, users: [ID!]!): TaskList
 #  addDependencyTodo(dependant: ID!, dependsOn: ID!): Dependency
 #  removeDependencyTodo(dependant: ID!, dependsOn: ID!): Boolean
-  createTodo(input: NewTodo!, list: String!): Todo
+  createTodo(input: NewTodo!): Todo
   renameTodo(id: ID!, newName: String!): Todo
   deleteTodo(input: ID!): Boolean!
   markCompletedTodo(input: ID!): Todo
