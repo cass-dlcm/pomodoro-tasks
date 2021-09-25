@@ -1,0 +1,64 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+scalar DateTime
+scalar JWT
+
+type TaskList {
+  id: ID!
+  users: [ID!]!
+  name: String!
+  tasks: [ID]!
+}
+
+#type Dependency {
+#  dependent: Todo!
+#  dependsOn: Todo!
+#}
+
+type Todo {
+  id: ID!
+  name: String!
+  createdAt: DateTime!
+  modifiedAt: DateTime!
+  completedAt: DateTime
+  list: ID!
+#  dependencies: [Dependency!]!
+}
+
+type User {
+  id: ID!
+  name: String!
+  lists: [ID!]!
+}
+
+input UserAuth {
+  name: String!
+  password: String!
+}
+
+type Query {
+  todos(list: ID!): [ID!]!
+  lists: [ID!]!
+  users: [ID!]!
+}
+
+input NewTodo {
+  name: String!
+  list: ID!
+}
+
+type Mutation {
+#  createList(input: String!): TaskList
+#  addUsersToList(listName: String!, users: [ID!]!): TaskList
+#  removeUsersFromList(listName: String!, users: [ID!]!): TaskList
+#  addDependencyTodo(dependant: ID!, dependsOn: ID!): Dependency
+#  removeDependencyTodo(dependant: ID!, dependsOn: ID!): Boolean
+  createTodo(input: NewTodo!, list: String!): Todo
+  renameTodo(id: ID!, newName: String!): Todo
+  deleteTodo(input: ID!): Boolean
+  markCompletedTodo(input: ID!): Todo
+  createUser(user: UserAuth!): User!
+  signIn(user: UserAuth!): JWT
+}
