@@ -128,3 +128,21 @@ func CheckPermsTodo(todoId int64, ctx context.Context) error {
 	}
 	return errors.New("user doesn't have permission to modify this todo")
 }
+
+func CheckPermsList(listId int64, ctx context.Context) error {
+	user, err := db.GetUserUsername(GetUsername(ctx))
+	if err != nil {
+		return err
+	}
+	taskList, err := db.GetListOnlyUsers(listId)
+	if err != nil {
+		return err
+	}
+	var userInList int64
+	for userInList = range taskList.Users {
+		if user.ID == userInList {
+			return nil
+		}
+	}
+	return errors.New("user doesn't have permission to modify this todo")
+}

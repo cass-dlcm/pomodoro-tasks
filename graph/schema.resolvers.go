@@ -14,6 +14,9 @@ import (
 )
 
 func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo, list string) (*model.Todo, error) {
+	if _, err := db.GetUserUsername(auth.GetUsername(ctx)); err != nil {
+		return nil, err
+	}
 	todo := &model.Todo{
 		Name:        input.Name,
 		CreatedAt:   time.Now(),
@@ -30,10 +33,16 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo, 
 }
 
 func (r *mutationResolver) RenameTodo(ctx context.Context, id int64, newName string) (*model.Todo, error) {
+	if err := auth.CheckPermsTodo(id, ctx); err != nil {
+		return nil, err
+	}
 	return db.RenameTodo(id, newName)
 }
 
 func (r *mutationResolver) DeleteTodo(ctx context.Context, input int64) (bool, error) {
+	if err := auth.CheckPermsTodo(input, ctx); err != nil {
+		return false, err
+	}
 	if err := db.DeleteTodo(input); err != nil {
 		return false, err
 	}
@@ -60,6 +69,9 @@ func (r *mutationResolver) SignIn(ctx context.Context, user model.UserAuth) (*st
 }
 
 func (r *queryResolver) Todos(ctx context.Context, list int64) (*model.TaskList, error) {
+	if err := auth.CheckPermsList(list, ctx); err != nil {
+		return nil, err
+	}
 	return db.GetListOnlyTasks(list)
 }
 
