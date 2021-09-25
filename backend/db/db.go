@@ -114,16 +114,43 @@ func GetTodo(id int64) (*model.Todo, error) {
 	todo := model.Todo{
 		ID:          id,
 	}
-	if err := db.QueryRow("select taskname, createdat, modifiedat, completedat, list from todos with id = ?", id).Scan(&todo.Name, &todo.CreatedAt, &todo.ModifiedAt, &todo.CompletedAt, &todo.List); err != nil {
+	if err := db.QueryRow("select taskname, createdat, modifiedat, completedat, list from todos where id = ?", id).Scan(&todo.Name, &todo.CreatedAt, &todo.ModifiedAt, &todo.CompletedAt, &todo.List); err != nil {
 		return nil, err
 	}
 	return &todo, nil
 }
 
-func GetTodosFromList(listId int64) ([]*model.Todo, error) {
-	todos := []*model.Todo{}
-	rows, err := db.Query("select id, taskname, createdat, modifiedat, completedat from todos with list = ?", listId)
+func GetListOnlyUsers(listId int64) (*model.TaskList, error) {
+	taskList := &model.TaskList{
+		ID:    listId,
+		Users: []int64{},
+	}
+	if err := db.QueryRow("select listname from lists where id = ?", listId).Scan(&taskList.Name); err != nil {
+		return nil, err
+	}
+	rows, err := db.Query("select user from tasklist_user_link where id = ?", listId)
 	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var userid int64
+		if err := rows.Scan(&userid); err != nil {
+			return nil, err
+		}
+		taskList.Users = append(taskList.Users, userid)
+	}
+}
+
+func GetListOnlyTasks(listId int64) (*model.TaskList, error) {
+	taskList := &model.TaskList{
+		ID:    listId,
+		Tasks: []*model.Todo{},
+	}
+	if err := db.QueryRow("select listname from lists where id = ?", listId).Scan(&taskList.Name); err != nil {
+		return nil, err
+	}
+	rows, err := db.Query("select id, taskname, createdat, modifiedat, completedat from todos where list = ?", listId)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, err
 	}
 	for rows.Next() {
@@ -133,17 +160,17 @@ func GetTodosFromList(listId int64) ([]*model.Todo, error) {
 		if err := rows.Scan(&todo.ID, &todo.Name, &todo.CreatedAt, &todo.ModifiedAt, &todo.CompletedAt); err != nil {
 			return nil, err
 		}
-		todos = append(todos, todo)
+		taskList.Tasks = append(taskList.Tasks, todo)
 	}
-	return todos, nil
+	return taskList, nil
 }
 
-func RenameTodo(todo model.Todo) error {
-	_, err := db.Exec("update todos set taskname = ? where id = ?", todo.Name, todo.ID)
+func RenameTodo(id int64, name string) (*model.Todo, error) {
+	_, err := db.Exec("update todos set taskname = ?, modifiedat = ? where id = ?", name, time.Now(), id)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return GetTodo(id)
 }
 
 func CreateTodo(todo model.Todo) (*int64, error) {
@@ -156,4 +183,17 @@ func CreateTodo(todo model.Todo) (*int64, error) {
 		return nil, err
 	}
 	return &id, nil
+}
+
+func DeleteTodo(id int64) error {
+	_, err := db.Exec("delete from todos where id = ?", id)
+	return err
+}
+
+func UpdateCompletionTodo(id int64) (*model.Todo, error) {
+	_, err := db.Exec("update todos set modifiedat = ?, completedat = ? where id = ?", time.Now(), time.Now(), id)
+	if err != nil {
+		return nil, err
+	}
+	return GetTodo(id)
 }

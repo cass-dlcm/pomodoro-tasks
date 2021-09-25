@@ -57,7 +57,6 @@ type ComplexityRoot struct {
 	Query struct {
 		Lists func(childComplexity int) int
 		Todos func(childComplexity int, list int64) int
-		Users func(childComplexity int) int
 	}
 
 	TaskList struct {
@@ -86,15 +85,14 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	CreateTodo(ctx context.Context, input model.NewTodo, list string) (*model.Todo, error)
 	RenameTodo(ctx context.Context, id int64, newName string) (*model.Todo, error)
-	DeleteTodo(ctx context.Context, input int64) (*bool, error)
+	DeleteTodo(ctx context.Context, input int64) (bool, error)
 	MarkCompletedTodo(ctx context.Context, input int64) (*model.Todo, error)
 	CreateUser(ctx context.Context, user model.UserAuth) (*model.User, error)
 	SignIn(ctx context.Context, user model.UserAuth) (*string, error)
 }
 type QueryResolver interface {
-	Todos(ctx context.Context, list int64) ([]*model.Todo, error)
+	Todos(ctx context.Context, list int64) (*model.TaskList, error)
 	Lists(ctx context.Context) ([]int64, error)
-	Users(ctx context.Context) ([]*model.User, error)
 }
 
 type executableSchema struct {
@@ -202,13 +200,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Todos(childComplexity, args["list"].(int64)), true
-
-	case "Query.users":
-		if e.complexity.Query.Users == nil {
-			break
-		}
-
-		return e.complexity.Query.Users(childComplexity), true
 
 	case "TaskList.id":
 		if e.complexity.TaskList.ID == nil {
@@ -376,7 +367,7 @@ type TaskList {
   id: ID!
   users: [ID!]!
   name: String!
-  tasks: [ID]!
+  tasks: [Todo!]!
 }
 
 #type Dependency {
@@ -406,9 +397,8 @@ input UserAuth {
 }
 
 type Query {
-  todos(list: ID!): [Todo!]
-  lists: [ID!]!
-  users: [User!]!
+  todos(list: ID!): TaskList!
+  lists: [ID!]
 }
 
 input NewTodo {
@@ -424,7 +414,7 @@ type Mutation {
 #  removeDependencyTodo(dependant: ID!, dependsOn: ID!): Boolean
   createTodo(input: NewTodo!, list: String!): Todo
   renameTodo(id: ID!, newName: String!): Todo
-  deleteTodo(input: ID!): Boolean
+  deleteTodo(input: ID!): Boolean!
   markCompletedTodo(input: ID!): Todo
   createUser(user: UserAuth!): User!
   signIn(user: UserAuth!): JWT
@@ -723,11 +713,14 @@ func (ec *executionContext) _Mutation_deleteTodo(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*bool)
+	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_markCompletedTodo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -882,11 +875,14 @@ func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.Coll
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Todo)
+	res := resTmp.(*model.TaskList)
 	fc.Result = res
-	return ec.marshalOTodo2ᚕᚖgithubᚗcomᚋcassᚑdlcmᚋpomodoro_tasksᚋgraphᚋmodelᚐTodoᚄ(ctx, field.Selections, res)
+	return ec.marshalNTaskList2ᚖgithubᚗcomᚋcassᚑdlcmᚋpomodoro_tasksᚋgraphᚋmodelᚐTaskList(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_lists(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -914,49 +910,11 @@ func (ec *executionContext) _Query_lists(ctx context.Context, field graphql.Coll
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.([]int64)
 	fc.Result = res
-	return ec.marshalNID2ᚕint64ᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_users(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Users(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.User)
-	fc.Result = res
-	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋcassᚑdlcmᚋpomodoro_tasksᚋgraphᚋmodelᚐUserᚄ(ctx, field.Selections, res)
+	return ec.marshalOID2ᚕint64ᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1165,9 +1123,9 @@ func (ec *executionContext) _TaskList_tasks(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*int64)
+	res := resTmp.([]*model.Todo)
 	fc.Result = res
-	return ec.marshalNID2ᚕᚖint64(ctx, field.Selections, res)
+	return ec.marshalNTodo2ᚕᚖgithubᚗcomᚋcassᚑdlcmᚋpomodoro_tasksᚋgraphᚋmodelᚐTodoᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Todo_id(ctx context.Context, field graphql.CollectedField, obj *model.Todo) (ret graphql.Marshaler) {
@@ -2695,6 +2653,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_renameTodo(ctx, field)
 		case "deleteTodo":
 			out.Values[i] = ec._Mutation_deleteTodo(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "markCompletedTodo":
 			out.Values[i] = ec._Mutation_markCompletedTodo(ctx, field)
 		case "createUser":
@@ -2739,6 +2700,9 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_todos(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "lists":
@@ -2750,23 +2714,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_lists(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		case "users":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_users(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			})
 		case "__type":
@@ -3243,36 +3190,6 @@ func (ec *executionContext) marshalNID2ᚕint64ᚄ(ctx context.Context, sel ast.
 	return ret
 }
 
-func (ec *executionContext) unmarshalNID2ᚕᚖint64(ctx context.Context, v interface{}) ([]*int64, error) {
-	var vSlice []interface{}
-	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
-	}
-	var err error
-	res := make([]*int64, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOID2ᚖint64(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalNID2ᚕᚖint64(ctx context.Context, sel ast.SelectionSet, v []*int64) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalOID2ᚖint64(ctx, sel, v[i])
-	}
-
-	return ret
-}
-
 func (ec *executionContext) unmarshalNNewTodo2githubᚗcomᚋcassᚑdlcmᚋpomodoro_tasksᚋgraphᚋmodelᚐNewTodo(ctx context.Context, v interface{}) (model.NewTodo, error) {
 	res, err := ec.unmarshalInputNewTodo(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -3293,21 +3210,21 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) marshalNTodo2ᚖgithubᚗcomᚋcassᚑdlcmᚋpomodoro_tasksᚋgraphᚋmodelᚐTodo(ctx context.Context, sel ast.SelectionSet, v *model.Todo) graphql.Marshaler {
+func (ec *executionContext) marshalNTaskList2githubᚗcomᚋcassᚑdlcmᚋpomodoro_tasksᚋgraphᚋmodelᚐTaskList(ctx context.Context, sel ast.SelectionSet, v model.TaskList) graphql.Marshaler {
+	return ec._TaskList(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTaskList2ᚖgithubᚗcomᚋcassᚑdlcmᚋpomodoro_tasksᚋgraphᚋmodelᚐTaskList(ctx context.Context, sel ast.SelectionSet, v *model.TaskList) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
 		}
 		return graphql.Null
 	}
-	return ec._Todo(ctx, sel, v)
+	return ec._TaskList(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNUser2githubᚗcomᚋcassᚑdlcmᚋpomodoro_tasksᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
-	return ec._User(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋcassᚑdlcmᚋpomodoro_tasksᚋgraphᚋmodelᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.User) graphql.Marshaler {
+func (ec *executionContext) marshalNTodo2ᚕᚖgithubᚗcomᚋcassᚑdlcmᚋpomodoro_tasksᚋgraphᚋmodelᚐTodoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Todo) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -3331,7 +3248,7 @@ func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋcassᚑdlcmᚋpomo
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNUser2ᚖgithubᚗcomᚋcassᚑdlcmᚋpomodoro_tasksᚋgraphᚋmodelᚐUser(ctx, sel, v[i])
+			ret[i] = ec.marshalNTodo2ᚖgithubᚗcomᚋcassᚑdlcmᚋpomodoro_tasksᚋgraphᚋmodelᚐTodo(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3349,6 +3266,20 @@ func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋcassᚑdlcmᚋpomo
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalNTodo2ᚖgithubᚗcomᚋcassᚑdlcmᚋpomodoro_tasksᚋgraphᚋmodelᚐTodo(ctx context.Context, sel ast.SelectionSet, v *model.Todo) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Todo(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNUser2githubᚗcomᚋcassᚑdlcmᚋpomodoro_tasksᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
+	return ec._User(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋcassᚑdlcmᚋpomodoro_tasksᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
@@ -3662,19 +3593,46 @@ func (ec *executionContext) marshalODateTime2ᚖtimeᚐTime(ctx context.Context,
 	return scalars.MarshalDateTime(*v)
 }
 
-func (ec *executionContext) unmarshalOID2ᚖint64(ctx context.Context, v interface{}) (*int64, error) {
+func (ec *executionContext) unmarshalOID2ᚕint64ᚄ(ctx context.Context, v interface{}) ([]int64, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := graphql.UnmarshalInt64(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]int64, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNID2int64(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
-func (ec *executionContext) marshalOID2ᚖint64(ctx context.Context, sel ast.SelectionSet, v *int64) graphql.Marshaler {
+func (ec *executionContext) marshalOID2ᚕint64ᚄ(ctx context.Context, sel ast.SelectionSet, v []int64) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return graphql.MarshalInt64(*v)
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2int64(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOJWT2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
@@ -3714,53 +3672,6 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return graphql.MarshalString(*v)
-}
-
-func (ec *executionContext) marshalOTodo2ᚕᚖgithubᚗcomᚋcassᚑdlcmᚋpomodoro_tasksᚋgraphᚋmodelᚐTodoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Todo) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNTodo2ᚖgithubᚗcomᚋcassᚑdlcmᚋpomodoro_tasksᚋgraphᚋmodelᚐTodo(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
 }
 
 func (ec *executionContext) marshalOTodo2ᚖgithubᚗcomᚋcassᚑdlcmᚋpomodoro_tasksᚋgraphᚋmodelᚐTodo(ctx context.Context, sel ast.SelectionSet, v *model.Todo) graphql.Marshaler {

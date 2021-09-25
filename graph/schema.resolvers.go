@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/cass-dlcm/pomodoro_tasks/backend/auth"
@@ -31,23 +30,21 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo, 
 }
 
 func (r *mutationResolver) RenameTodo(ctx context.Context, id int64, newName string) (*model.Todo, error) {
-	todo, err := db.GetTodo(id)
-	if err != nil {
-		return nil, err
-	}
-	todo.Name = newName
-	if err := db.RenameTodo(*todo); err != nil {
-		return nil, err
-	}
-	return todo, nil
+	return db.RenameTodo(id, newName)
 }
 
-func (r *mutationResolver) DeleteTodo(ctx context.Context, input int64) (*bool, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *mutationResolver) DeleteTodo(ctx context.Context, input int64) (bool, error) {
+	if err := db.DeleteTodo(input); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (r *mutationResolver) MarkCompletedTodo(ctx context.Context, input int64) (*model.Todo, error) {
-	panic(fmt.Errorf("not implemented"))
+	if err := auth.CheckPermsTodo(input, ctx); err != nil {
+		return nil, err
+	}
+	return db.UpdateCompletionTodo(input)
 }
 
 func (r *mutationResolver) CreateUser(ctx context.Context, user model.UserAuth) (*model.User, error) {
@@ -62,16 +59,16 @@ func (r *mutationResolver) SignIn(ctx context.Context, user model.UserAuth) (*st
 	return &token, err
 }
 
-func (r *queryResolver) Todos(ctx context.Context, list int64) ([]*model.Todo, error) {
-	return db.GetTodosFromList(list)
+func (r *queryResolver) Todos(ctx context.Context, list int64) (*model.TaskList, error) {
+	return db.GetListOnlyTasks(list)
 }
 
 func (r *queryResolver) Lists(ctx context.Context) ([]int64, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	user, err := db.GetUserUsername(auth.GetUsername(ctx))
+	if err != nil {
+		 return nil, err
+	}
+	return db.GetTaskListsUser(user.ID)
 }
 
 // Mutation returns generated.MutationResolver implementation.
