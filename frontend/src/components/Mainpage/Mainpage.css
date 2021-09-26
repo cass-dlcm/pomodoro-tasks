@@ -57,8 +57,10 @@ body{
   height: 1000px;
   position: relative;
   top: 10vh;
-  left: 20vh;
+  right: 24vh;
   font-size: 70px;
- /*z-index: 1;*/
+
+  text-align: center;
+  z-index: 1;
 }
 

@@ -1,12 +1,5 @@
 import { CountdownCircleTimer } from 'react-countdown-circle-timer'
-/*
-const children = ({ remainingTime }) => {
-  const hours = Math.floor(remainingTime / 3600)
-  const minutes = Math.floor((remainingTime % 3600) / 60)
-  const seconds = remainingTime % 60
 
-  return `${hours}:${minutes}:${seconds}`
-}*/
 export const Clock = (size) => {
   return(
     <div class="countdown">
@@ -26,5 +19,14 @@ export const Clock = (size) => {
 
   
     </div>
+    
   );
 }
+/*
+const children = ({ remainingTime }) => {
+    const minutes = Math.floor(remainingTime / 60)
+    const seconds = remainingTime % 60
+  
+    return `${minutes}:${seconds}`
+    }
+*/
