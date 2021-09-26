@@ -70,7 +70,6 @@ body{
   z-index: 1;
 }
 
-/to do list/
 .ToDoListApp{
   position: fixed;
   top: 15vh;
@@ -163,5 +162,18 @@ body{
     left: 50vh;
     font-size: 30px;
     padding: 10px 30px;
+  }
+  .ToDoListApp{
+    top: 70px;
+    width: 350px;
+    left: 740px;
+    z-index: 1;
+  }
+  .todo-input {
+    padding: 10px 10px 10px 10px;
+    width: 200px;
+  }
+  .todo-button {
+    padding: 10px;
   }
 }
