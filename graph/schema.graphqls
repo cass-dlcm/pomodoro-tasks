@@ -9,7 +9,7 @@ type TaskList {
   id: ID!
   users: [ID!]!
   name: String!
-  tasks: [ID]!
+  tasks: [Todo!]!
 }
 
 #type Dependency {
@@ -39,9 +39,8 @@ input UserAuth {
 }
 
 type Query {
-  todos(list: ID!): [Todo!]
-  lists: [ID!]!
-  users: [User!]!
+  todos(list: ID!): TaskList!
+  lists: [ID!]
 }
 
 input NewTodo {
@@ -55,9 +54,9 @@ type Mutation {
 #  removeUsersFromList(listName: String!, users: [ID!]!): TaskList
 #  addDependencyTodo(dependant: ID!, dependsOn: ID!): Dependency
 #  removeDependencyTodo(dependant: ID!, dependsOn: ID!): Boolean
-  createTodo(input: NewTodo!, list: String!): Todo
+  createTodo(input: NewTodo!): Todo
   renameTodo(id: ID!, newName: String!): Todo
-  deleteTodo(input: ID!): Boolean
+  deleteTodo(input: ID!): Boolean!
   markCompletedTodo(input: ID!): Todo
   createUser(user: UserAuth!): User!
   signIn(user: UserAuth!): JWT

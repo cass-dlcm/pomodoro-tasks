@@ -12,10 +12,10 @@ type NewTodo struct {
 }
 
 type TaskList struct {
-	ID    int64    `json:"id"`
-	Users []int64  `json:"users"`
-	Name  string   `json:"name"`
-	Tasks []*int64 `json:"tasks"`
+	ID    int64   `json:"id"`
+	Users []int64 `json:"users"`
+	Name  string  `json:"name"`
+	Tasks []*Todo `json:"tasks"`
 }
 
 type Todo struct {

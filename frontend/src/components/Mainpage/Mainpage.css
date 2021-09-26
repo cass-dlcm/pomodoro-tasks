@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@300&display=swap');
+
+body{
+  background-color: #D7E8FF;
+  color: #071B36;
+  height: 100vh;
+  font-family: 'Roboto Slab', Roboto, Arial;
+  font-weight: 700;
+}
+
+.notebook{
+  position: fixed;
+  bottom: 15vh;
+  right: 20vh;
+}
+
+.clock{
+  position: fixed;
+  bottom: 60vh;
+  left: 40vh;
+}
+
+.settime{
+  position: fixed;
+  bottom: 40vh;
+  left: 39vh;
+
+  font-size: 60px;
+}
+
+.timeset{
+  position: fixed;
+  bottom: 25vh;
+  left: 50vh;
+
+  font-size: 40px;
+}
+
+.timebutton{
+  position: fixed;
+  bottom: 10vh;
+  left: 41vh;
+
+  font-family: 'Roboto Slab', Roboto, Arial;
+  font-weight: 700;
+  font-size: 40px;
+
+  background-color: #071B36;
+  color: white;
+
+  border-radius: 10px;
+
+  padding: 20px 60px;
+}
+
+.countdown{
+  height: 1000px;
+  position: relative;
+  top: 10vh;
+  left: 20vh;
+  font-size: 70px;
+ /*z-index: 1;*/
+}
+

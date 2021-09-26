@@ -3,6 +3,8 @@ package db
 import (
 	"database/sql"
 	"errors"
+	"log"
+	"os"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -14,14 +16,21 @@ var db *sql.DB
 
 func InitDB() {
 	var err error
-	db, err = sql.Open("mysql", "user:password@/dbname?parseTime=true")
+	user := os.Getenv("pomodoro-tasks-db-user")
+	if user == "" {
+		log.Panicln("cannot retrieve user")
+	}
+	password := os.Getenv("pomodoro-tasks-db-password")
+	if password == "" {
+		log.Panicln("cannot retrieve password")
+	}
+	db, err = sql.Open("mysql", user + ":" + password + "@/db?parseTime=true")
 	if err != nil {
 		panic(err)
 	}
 	db.SetConnMaxLifetime(time.Minute * 3)
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(10)
-
 }
 
 func GetUserUsername(username string) (*model.User, error) {
@@ -45,16 +54,12 @@ func GetUserAuthUsername(username string) (*model.UserAuth, error) {
 	return user, nil
 }
 
-func CreateUser(user model.UserAuth) (*model.User, error) {
+func CreateUser(user model.UserAuth) (int64, error) {
 	res, err := db.Exec("insert into users (username, password) values (?, ?)", user.Name, user.Password)
 	if err != nil {
-		return nil, err
+		return -1, err
 	}
-	id, err := res.LastInsertId()
-	if err != nil {
-		return nil, err
-	}
-	return GetUser(id)
+	return res.LastInsertId()
 }
 
 func GetUser(id int64) (*model.User, error) {
@@ -76,11 +81,8 @@ func GetUser(id int64) (*model.User, error) {
 
 func GetTaskListsUser(id int64) ([]int64, error) {
 	taskLists := []int64{}
-	rows, err := db.Query("select id from tasklist_user_link where user = ?", id)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return nil, err
-	}
-	if errors.Is(err, sql.ErrNoRows) {
+	rows, err := db.Query("select todoList from tasklist_user_link where user = ?", id)
+	if err != nil {
 		return nil, err
 	}
 	for rows.Next() {
@@ -93,8 +95,8 @@ func GetTaskListsUser(id int64) ([]int64, error) {
 	return taskLists, nil
 }
 
-func CreateList(user model.User, name string) (*int64, error) {
-	res, err := db.Exec("insert into lists (listname) values (?)", name)
+func CreateList(user int64, name string) (*int64, error) {
+	res, err := db.Exec("insert into lists (listName) values (?)", name)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +104,7 @@ func CreateList(user model.User, name string) (*int64, error) {
 	if err != nil {
 		return nil, err
 	}
-	res, err = db.Exec("insert into tasklist_user_link (user, list) values (?, ?)", user.ID, id)
+	res, err = db.Exec("insert into tasklist_user_link (user, todoList) values (?, ?)", user, id)
 	id, err = res.LastInsertId()
 	if err != nil {
 		return nil, err
@@ -112,18 +114,46 @@ func CreateList(user model.User, name string) (*int64, error) {
 
 func GetTodo(id int64) (*model.Todo, error) {
 	todo := model.Todo{
-		ID:          id,
+		ID: id,
 	}
-	if err := db.QueryRow("select taskname, createdat, modifiedat, completedat, list from todos with id = ?", id).Scan(&todo.Name, &todo.CreatedAt, &todo.ModifiedAt, &todo.CompletedAt, &todo.List); err != nil {
+	if err := db.QueryRow("select todoName, createdAt, modifiedAt, completedAt, todoList from todos where id = ?", id).Scan(&todo.Name, &todo.CreatedAt, &todo.ModifiedAt, &todo.CompletedAt, &todo.List); err != nil {
 		return nil, err
 	}
 	return &todo, nil
 }
 
-func GetTodosFromList(listId int64) ([]*model.Todo, error) {
-	todos := []*model.Todo{}
-	rows, err := db.Query("select id, taskname, createdat, modifiedat, completedat from todos with list = ?", listId)
+func GetListOnlyUsers(listId int64) (*model.TaskList, error) {
+	taskList := &model.TaskList{
+		ID:    listId,
+		Users: []int64{},
+	}
+	if err := db.QueryRow("select listName from lists where id = ?", listId).Scan(&taskList.Name); err != nil {
+		return nil, err
+	}
+	rows, err := db.Query("select user from tasklist_user_link where id = ?", listId)
 	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var userid int64
+		if err := rows.Scan(&userid); err != nil {
+			return nil, err
+		}
+		taskList.Users = append(taskList.Users, userid)
+	}
+	return taskList, nil
+}
+
+func GetListOnlyTasks(listId int64) (*model.TaskList, error) {
+	taskList := &model.TaskList{
+		ID:    listId,
+		Tasks: []*model.Todo{},
+	}
+	if err := db.QueryRow("select listName from lists where id = ?", listId).Scan(&taskList.Name); err != nil {
+		return nil, err
+	}
+	rows, err := db.Query("select id, todoName, createdAt, modifiedAt, completedAt from todos where list = ?", listId)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, err
 	}
 	for rows.Next() {
@@ -133,21 +163,21 @@ func GetTodosFromList(listId int64) ([]*model.Todo, error) {
 		if err := rows.Scan(&todo.ID, &todo.Name, &todo.CreatedAt, &todo.ModifiedAt, &todo.CompletedAt); err != nil {
 			return nil, err
 		}
-		todos = append(todos, todo)
+		taskList.Tasks = append(taskList.Tasks, todo)
 	}
-	return todos, nil
+	return taskList, nil
 }
 
-func RenameTodo(todo model.Todo) error {
-	_, err := db.Exec("update todos set taskname = ? where id = ?", todo.Name, todo.ID)
+func RenameTodo(id int64, name string) (*model.Todo, error) {
+	_, err := db.Exec("update todos set todoName = ?, modifiedAt = ? where id = ?", name, time.Now(), id)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return GetTodo(id)
 }
 
 func CreateTodo(todo model.Todo) (*int64, error) {
-	res, err := db.Exec("insert into todos (taskname, createdat, modifiedat, completedat, list) values (?, ?, ?, ?, ?)", todo.Name, todo.CreatedAt, todo.ModifiedAt, todo.CompletedAt, todo.List)
+	res, err := db.Exec("insert into todos (todoName, createdat, modifiedAt, completedAt, todoList) values (?, ?, ?, ?, ?)", todo.Name, todo.CreatedAt, todo.ModifiedAt, todo.CompletedAt, todo.List)
 	if err != nil {
 		return nil, err
 	}
@@ -156,4 +186,17 @@ func CreateTodo(todo model.Todo) (*int64, error) {
 		return nil, err
 	}
 	return &id, nil
+}
+
+func DeleteTodo(id int64) error {
+	_, err := db.Exec("delete from todos where id = ?", id)
+	return err
+}
+
+func UpdateCompletionTodo(id int64) (*model.Todo, error) {
+	_, err := db.Exec("update todos set modifiedAt = ?, completedAt = ? where id = ?", time.Now(), time.Now(), id)
+	if err != nil {
+		return nil, err
+	}
+	return GetTodo(id)
 }
