@@ -43,13 +43,13 @@
     width: 25rem;
     position: absolute;
     padding-right: 120px;
-    
+    padding-top: 80px;
 }
 
 .heading {
     font-size: 2rem;
     padding-left: 10px;
-    height: 220px;
+    height: 150px;
 }
 
 .inputSection {
@@ -75,7 +75,7 @@
     height: 80px;
     width: 370px;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
 }
 
@@ -85,27 +85,8 @@
     border-radius: 10px;
     border-color: transparent;
     background: #A5C7F3;
-    
-}
-
-.btn1 a {
-    font-size: 1rem;
-    color: #fff;
-    text-decoration: none;
-}
-
-.btn2 {
-    width: 170px;
-    height: 50px;
-    border-radius: 10px;
-    border-color: transparent;
-    background: #071B36;
     font-size: 1rem;
     color: #fff;
 }
 
-.btn2 a {
-    font-size: 1rem;
-    color: #fff;
-    text-decoration: none;
-}
+
