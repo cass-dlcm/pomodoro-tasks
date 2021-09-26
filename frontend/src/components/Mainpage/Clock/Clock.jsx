@@ -16,10 +16,8 @@ export const Clock = (size) => {
       
       {children}
       </CountdownCircleTimer>
-
   
     </div>
-    
   );
 }
 const children = ({ remainingTime }) => {
