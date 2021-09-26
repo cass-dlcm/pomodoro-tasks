@@ -3,8 +3,8 @@ package db
 import (
 	"database/sql"
 	"errors"
-	"log"
-	"os"
+	"fmt"
+	"github.com/cass-dlcm/pomodoro_tasks/backend/secrets"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -16,15 +16,10 @@ var db *sql.DB
 
 func InitDB() {
 	var err error
-	user := os.Getenv("pomodoro-tasks-db-user")
-	if user == "" {
-		log.Panicln("cannot retrieve user")
-	}
-	password := os.Getenv("pomodoro-tasks-db-password")
-	if password == "" {
-		log.Panicln("cannot retrieve password")
-	}
-	db, err = sql.Open("mysql", user + ":" + password + "@/db?parseTime=true")
+	user := secrets.GetSecret("pomodoro-tasks-db-user")
+	password := secrets.GetSecret("pomodoro-tasks-db-password")
+	host := secrets.GetSecret("pomodoro-tasks-db-host")
+	db, err = sql.Open("mysql", fmt.Sprintf("%s:%s@%s/db?parseTime=True", user, password, host))
 	if err != nil {
 		panic(err)
 	}
