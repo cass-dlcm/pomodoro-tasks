@@ -1,13 +1,22 @@
 import { Home } from "./components/Home";
-import { Clock } from "./components/Mainpage/Clock";
+import { SignUp } from "./components/SignUp";
 import { Mainpage } from "./components/Mainpage";
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link
+} from "react-router-dom";
 
 function App() {
   return (
-    
-    <div>
-      <Mainpage/>
-      
+    <div >
+      <Router>
+        <Route exact path="/" component={Home} />
+        <Route exact path="/signup" component={SignUp} />
+        <Route exact path="/mainpage" component={Mainpage} />
+        </Router>
+
     </div>
   );
 }

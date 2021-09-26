@@ -1,16 +1,6 @@
-import styles from "./Home.module.scss";
-import { useHistory } from "react-router";
+import styles from "./SignUp.module.scss";
 
-import {
-    BrowserRouter as Router,
-    Switch,
-    Route,
-    Link
-  } from "react-router-dom";
-
-export const Home = () => {
-    let history = useHistory();
-
+export const SignUp = () => {
     return (
         <div>
             <div className={styles.background}>
@@ -21,7 +11,7 @@ export const Home = () => {
                 <img src="./assets/StickyNote.png" alt="" />
                 <div className={styles.loginSection}>
                 <div className={styles.heading}>
-                <h1>Welcome to Stidy</h1>
+                <h1>Sign Up</h1>
                 </div>
                 <div>
                     <div className={styles.inputSection}>
@@ -29,16 +19,9 @@ export const Home = () => {
                     <input className={styles.input} type="text" placeholder="Password"/>
                     </div>
                     <div className={styles.btnSection}>
-                    <button className={styles.btn1}>
-                        <a href="">Log In</a>
-                    </button>
-                    <button onClick={() => {history.push("/signup")}} type="button" className={styles.btn2}>
-                        <a href="">Sign Up</a>
-                    </button>
+                        <button className={styles.btn1}>Register!</button>
                     </div>
                 </div>
-                
-
                 </div>
                 </div>
             </div>

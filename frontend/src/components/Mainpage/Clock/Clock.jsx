@@ -13,8 +13,8 @@ export const Clock = (size) => {
           ['#F7B801', 0.33],
           ['#A30000', 0.33],]}
         >
-       {({ remainingTime }) => remainingTime}
-     
+      
+      {children}
       </CountdownCircleTimer>
 
   
@@ -22,6 +22,13 @@ export const Clock = (size) => {
     
   );
 }
+const children = ({ remainingTime }) => {
+  const minutes = Math.floor(remainingTime / 60)
+  const seconds = remainingTime % 60
+
+  return `${minutes}:${seconds}`
+}
+
 /*
 const children = ({ remainingTime }) => {
     const minutes = Math.floor(remainingTime / 60)
