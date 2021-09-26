@@ -9,6 +9,7 @@ import {
   Route,
   Link
 } from "react-router-dom";
+import { ToDoList }  from "./ToDoList";
 
 export const Mainpage = () => {
   
@@ -44,13 +45,11 @@ export const Mainpage = () => {
       </section>
 
       <section>
+        <div class="ToDoListApp"><ToDoList></ToDoList></div>
         <div class="notebook"><img src={'./assets/notebook.svg'} alt="notebook" /></div>
       </section>
     </div>
     </Router>
-    
-   
   );
   
 }
-//<div class="clock"><img src={clock} alt="clock" /></div>

@@ -70,6 +70,73 @@ body{
   z-index: 1;
 }
 
+/to do list/
+.ToDoListApp{
+  position: fixed;
+  top: 15vh;
+  right: 20vh;
+  z-index: 1;
+
+  width: 520px;
+  min-height: 600px;
+  margin: 128px auto;
+
+}
+
+.complete {
+  text-decoration: line-through;
+  opacity: 0.4;
+}
+
+.todo-form {
+  margin-bottom: 32px;
+}
+
+.todo-input {
+  padding: 10px 10px 10px 10px;
+  border-radius: 4px 0 0 4px;
+  border: 2px solid black;
+  outline: none;
+  width: 320px;
+  background: transparent;
+  color: black;
+
+}
+
+.todo-input::placeholder {
+  color: #e2e2e2;
+}
+
+.todo-button {
+  padding: 10px;
+  border: 2px solid #071B36;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+  outline: none;
+  background-color: #071B36;
+  color: #E1E1E1;
+}
+
+
+.todo-container {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+}
+
+.todo-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px auto;
+  color: black;
+
+  width: 320px;
+  background: transparent;
+  padding: 14px 16px 14px 16px;
+  border-radius: 4px 0 0 4px;
+
+}
+
 @media only screen and (min-width : 1224px) and (max-width: 1824px) {
   .notebook img {
     height: 500px;
