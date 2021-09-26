@@ -1,7 +1,6 @@
 import { Home } from "./components/Home";
 import { SignUp } from "./components/SignUp";
-import { Clock } from "./components/Clock"
-
+import { Mainpage } from "./components/Mainpage";
 import {
   BrowserRouter as Router,
   Switch,
@@ -15,7 +14,7 @@ function App() {
       <Router>
         <Route exact path="/" component={Home} />
         <Route exact path="/signup" component={SignUp} />
-        <Route exact path="/clock" component={Clock} />
+        <Route exact path="/mainpage" component={Mainpage} />
         </Router>
       
     </div>
