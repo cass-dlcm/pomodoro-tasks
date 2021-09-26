@@ -1,7 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@300&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Waiting+for+the+Sunrise&display=swap');
 
-/*****mainpage - general*****/
 body{
   background-color: #D7E8FF;
   color: #071B36;
@@ -16,7 +14,6 @@ body{
   right: 20vh;
 }
 
-/*****clock*****/
 .clock{
   position: fixed;
   bottom: 60vh;
@@ -40,34 +37,40 @@ body{
 }
 
 .timebutton{
-  position: fixed;
-  bottom: 10vh;
-  left: 41vh;
-
   font-family: 'Roboto Slab', Roboto, Arial;
   font-weight: 700;
   font-size: 40px;
-
   background-color: #071B36;
   color: white;
-
   border-radius: 10px;
-
   padding: 20px 60px;
+}
+
+.timebutton a {
+  text-decoration: none;
+  color: white;
 }
 
 .countdown{
   height: 1000px;
   position: relative;
   top: 10vh;
-  right: 24vh;
+  left: 20vh;
   font-size: 70px;
+ /*z-index: 1;*/
+}
 
-  text-align: center;
+.btn-section {
+  position: absolute;
+  bottom: 50px;
+  left: 270px;
+  width: 340px;
+  display: flex;
+  justify-content: space-between;
   z-index: 1;
 }
 
-/*****to do list*****/
+/to do list/
 .ToDoListApp{
   position: fixed;
   top: 15vh;
@@ -97,7 +100,7 @@ body{
   width: 320px;
   background: transparent;
   color: black;
-  
+
 }
 
 .todo-input::placeholder {
@@ -131,5 +134,34 @@ body{
   background: transparent;
   padding: 14px 16px 14px 16px;
   border-radius: 4px 0 0 4px;
-  
+
+}
+
+@media only screen and (min-width : 1224px) and (max-width: 1824px) {
+  .notebook img {
+    height: 500px;
+  }
+  .countdown{
+    top: 5vh;
+    left: -15vh;
+    font-size: 70px;
+    z-index: 1;
+    text-align: center;
+  }
+  .settime{
+    font-size: 50px;
+    left: 44vh;
+    bottom: 36vh;
+  }
+  .timeset{
+    font-size: 30px;
+    left: 45vh;
+    bottom: 24vh;
+  }
+  .timebutton{
+    bottom: 10vh;
+    left: 50vh;
+    font-size: 30px;
+    padding: 10px 30px;
+  }
 }
