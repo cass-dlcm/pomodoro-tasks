@@ -26,12 +26,3 @@ const children = ({ remainingTime }) => {
 
   return `${minutes}:${seconds}`
 }
-
-/*
-const children = ({ remainingTime }) => {
-    const minutes = Math.floor(remainingTime / 60)
-    const seconds = remainingTime % 60
-  
-    return `${minutes}:${seconds}`
-    }
-*/

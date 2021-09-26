@@ -1,11 +1,8 @@
 import styles from "./Mainpage.css";
-//import notebook from './assets/notebook.svg';
-//import clock from './assets/Clock.svg';
+
 import { Clock } from "./Clock";
 import { ToDoList }  from "./ToDoList";
 
-//console.log(clock);
-//console.log(notebook);
 
 export const Mainpage = () => {
   return(
@@ -29,4 +26,3 @@ export const Mainpage = () => {
     </div>
   );
 }
-//<div class="clock"><img src={clock} alt="clock" /></div>

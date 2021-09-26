@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@300&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Waiting+for+the+Sunrise&display=swap');
 
+/*****mainpage - general*****/
 body{
   background-color: #D7E8FF;
   color: #071B36;
@@ -15,6 +16,7 @@ body{
   right: 20vh;
 }
 
+/*****clock*****/
 .clock{
   position: fixed;
   bottom: 60vh;
@@ -65,7 +67,7 @@ body{
   z-index: 1;
 }
 
-
+/*****to do list*****/
 .ToDoListApp{
   position: fixed;
   top: 15vh;

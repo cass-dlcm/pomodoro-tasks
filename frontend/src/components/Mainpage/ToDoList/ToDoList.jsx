@@ -10,7 +10,6 @@ export const ToDoList = () =>{
       return;
     }
     
-
     const newTodos = [todo, ...todos];
 
     setTodos(newTodos);
