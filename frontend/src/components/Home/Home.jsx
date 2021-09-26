@@ -29,7 +29,7 @@ export const Home = () => {
                     <input className={styles.input} type="text" placeholder="Password"/>
                     </div>
                     <div className={styles.btnSection}>
-                    <button className={styles.btn1}>
+                    <button onClick={() => {history.push("/Mainpage")}} className={styles.btn1}>
                         <a href="">Log In</a>
                     </button>
                     <button onClick={() => {history.push("/signup")}} type="button" className={styles.btn2}>
@@ -37,8 +37,6 @@ export const Home = () => {
                     </button>
                     </div>
                 </div>
-                
-
                 </div>
                 </div>
             </div>

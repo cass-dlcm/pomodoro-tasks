@@ -2,22 +2,44 @@ import styles from "./Mainpage.css";
 //import notebook from './assets/notebook.svg';
 //import clock from './assets/Clock.svg';
 import { Clock } from "./Clock";
-
-//console.log(clock);
-//console.log(notebook);
+import {BreakClock} from "./Break Clock"
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link
+} from "react-router-dom";
 
 export const Mainpage = () => {
+  
   return(
-    <div>
+    <Router>
+      <div>
       <section>
-      <div class="countdown"><Clock></Clock></div>
+      <div class="countdown">
+        <Route exact path="/clock" component={Clock} />
+        <Route exact path="/breakclock" component={BreakClock} />
+        <Clock />
+      </div>
         <section class = "timetext">
           <div class="settime">Set a Time</div>
           <div class="timeset">
-            <div>Work Minutes</div>
-            <div>Break Minutes</div>
+            
+            <div>25 Work Minutes</div>
+            <div>5 Break Minutes</div>
           </div>
-          <button class="timebutton">Begin!</button>
+          <div class="btn-section">
+          <button class="timebutton">
+            <a href="">
+           <Link to="/clock"> Begin! </Link>
+            </a>
+          </button>
+          <button class="timebutton">
+            <a href="">
+            <Link to="/breakclock"> Break! </Link>
+            </a>
+            </button>
+          </div>
         </section>
       </section>
 
@@ -25,7 +47,10 @@ export const Mainpage = () => {
         <div class="notebook"><img src={'./assets/notebook.svg'} alt="notebook" /></div>
       </section>
     </div>
+    </Router>
+    
    
   );
+  
 }
 //<div class="clock"><img src={clock} alt="clock" /></div>

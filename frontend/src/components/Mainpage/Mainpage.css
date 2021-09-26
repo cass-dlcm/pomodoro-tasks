@@ -37,20 +37,18 @@ body{
 }
 
 .timebutton{
-  position: fixed;
-  bottom: 10vh;
-  left: 41vh;
-
   font-family: 'Roboto Slab', Roboto, Arial;
   font-weight: 700;
   font-size: 40px;
-
   background-color: #071B36;
   color: white;
-
   border-radius: 10px;
-
   padding: 20px 60px;
+}
+
+.timebutton a {
+  text-decoration: none;
+  color: white;
 }
 
 .countdown{
@@ -62,12 +60,26 @@ body{
  /*z-index: 1;*/
 }
 
+.btn-section {
+  position: absolute;
+  bottom: 50px;
+  left: 270px;
+  width: 340px;
+  display: flex;
+  justify-content: space-between;
+  z-index: 1;
+}
+
 @media only screen and (min-width : 1224px) and (max-width: 1824px) {
   .notebook img {
     height: 500px;
   }
   .countdown{
     top: 5vh;
+    left: -15vh;
+    font-size: 70px;
+    z-index: 1;
+    text-align: center;
   }
   .settime{
     font-size: 50px;
@@ -76,7 +88,7 @@ body{
   }
   .timeset{
     font-size: 30px;
-    left: 55vh;
+    left: 45vh;
     bottom: 24vh;
   }
   .timebutton{
