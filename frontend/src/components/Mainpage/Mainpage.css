@@ -62,3 +62,27 @@ body{
  /*z-index: 1;*/
 }
 
+@media only screen and (min-width : 1224px) and (max-width: 1824px) {
+  .notebook img {
+    height: 500px;
+  }
+  .countdown{
+    top: 5vh;
+  }
+  .settime{
+    font-size: 50px;
+    left: 44vh;
+    bottom: 36vh;
+  }
+  .timeset{
+    font-size: 30px;
+    left: 55vh;
+    bottom: 24vh;
+  }
+  .timebutton{
+    bottom: 10vh;
+    left: 50vh;
+    font-size: 30px;
+    padding: 10px 30px;
+  }
+}
