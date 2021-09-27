@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"time"
 
@@ -45,7 +46,10 @@ func (r *mutationResolver) RemoveDependencyTodo(ctx context.Context, dependent i
 		return true, err
 	}
 	if found, err := db.CheckDependency(dependent, dependsOn); found == false {
-		return true, err
+		if !errors.Is(err, sql.ErrNoRows) {
+			return true, err
+		}
+		return true, nil
 	}
 	return db.RemoveDependency(dependent, dependsOn)
 }
@@ -88,13 +92,6 @@ func (r *mutationResolver) DeleteTodo(ctx context.Context, id int64) (bool, erro
 	return true, nil
 }
 
-func (r *mutationResolver) GetTodo(ctx context.Context, id int64) (*model.Todo, error) {
-	if err := auth.CheckPermsTodo(id, ctx); err != nil {
-		return nil, err
-	}
-	return db.GetTodo(id)
-}
-
 func (r *mutationResolver) MarkCompletedTodo(ctx context.Context, id int64) (*model.Todo, error) {
 	if err := auth.CheckPermsTodo(id, ctx); err != nil {
 		return nil, err
@@ -133,6 +130,13 @@ func (r *queryResolver) Lists(ctx context.Context) ([]int64, error) {
 	return db.GetTaskListsUser(user.ID)
 }
 
+func (r *queryResolver) GetTodo(ctx context.Context, id int64) (*model.Todo, error) {
+	if err := auth.CheckPermsTodo(id, ctx); err != nil {
+		return nil, err
+	}
+	return db.GetTodo(id)
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
@@ -141,3 +145,4 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+

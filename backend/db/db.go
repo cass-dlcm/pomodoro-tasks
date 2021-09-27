@@ -31,7 +31,10 @@ func InitDB() {
 func GetUserUsername(username string) (*model.User, error) {
 	user := &model.User{}
 	if err := db.QueryRow("select id, username from users where username = ?", username).Scan(&user.ID, &user.Name); err != nil {
-		return nil, err
+		if !errors.Is(err, sql.ErrNoRows) {
+			return nil, err
+		}
+		return nil, errors.New("no user found")
 	}
 	var err error
 	user.Lists, err = GetTaskListsUser(user.ID)
@@ -222,7 +225,8 @@ func UpdateCompletionTodo(id int64) (*model.Todo, error) {
 }
 
 func CheckDependency(dependent, dependsOn int64) (bool, error) {
-	if err := db.QueryRow("select from dependencies where dependent = ? and dependsOn = ?", dependent, dependsOn).Scan(); err != nil {
+	var junk int64
+	if err := db.QueryRow("select * from dependencies where dependent = ? and dependsOn = ?", dependent, dependsOn).Scan(&junk, &junk); err != nil {
 		return false, err
 	}
 	return true, nil
@@ -244,7 +248,7 @@ func AddDependency(dependent, dependsOn int64) ([]*model.Todo, error) {
 }
 
 func RemoveDependency(dependent, dependsOn int64) (bool, error) {
-	if _, err := db.Exec("delete from dependencies where dependent = ? and dependsOn = ?", dependent, dependsOn); err != nil {
+	if _, err := db.Exec("DELETE FROM dependencies WHERE dependent = ? AND dependsOn = ?", dependent, dependsOn); err != nil {
 		return false, err
 	}
 	return true, nil

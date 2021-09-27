@@ -50,7 +50,6 @@ type ComplexityRoot struct {
 		CreateTodo           func(childComplexity int, input model.NewTodo) int
 		CreateUser           func(childComplexity int, user model.UserAuth) int
 		DeleteTodo           func(childComplexity int, id int64) int
-		GetTodo              func(childComplexity int, id int64) int
 		MarkCompletedTodo    func(childComplexity int, id int64) int
 		RemoveDependencyTodo func(childComplexity int, dependent int64, dependsOn int64) int
 		RenameTodo           func(childComplexity int, id int64, newName string) int
@@ -58,8 +57,9 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Lists func(childComplexity int) int
-		Todos func(childComplexity int, list int64) int
+		GetTodo func(childComplexity int, id int64) int
+		Lists   func(childComplexity int) int
+		Todos   func(childComplexity int, list int64) int
 	}
 
 	TaskList struct {
@@ -101,7 +101,6 @@ type MutationResolver interface {
 	CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error)
 	RenameTodo(ctx context.Context, id int64, newName string) (*model.Todo, error)
 	DeleteTodo(ctx context.Context, id int64) (bool, error)
-	GetTodo(ctx context.Context, id int64) (*model.Todo, error)
 	MarkCompletedTodo(ctx context.Context, id int64) (*model.Todo, error)
 	CreateUser(ctx context.Context, user model.UserAuth) (*model.User, error)
 	SignIn(ctx context.Context, user model.UserAuth) (*string, error)
@@ -109,6 +108,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Todos(ctx context.Context, list int64) (*model.TaskList, error)
 	Lists(ctx context.Context) ([]int64, error)
+	GetTodo(ctx context.Context, id int64) (*model.Todo, error)
 }
 
 type executableSchema struct {
@@ -174,18 +174,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteTodo(childComplexity, args["id"].(int64)), true
 
-	case "Mutation.getTodo":
-		if e.complexity.Mutation.GetTodo == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_getTodo_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.GetTodo(childComplexity, args["id"].(int64)), true
-
 	case "Mutation.markCompletedTodo":
 		if e.complexity.Mutation.MarkCompletedTodo == nil {
 			break
@@ -233,6 +221,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SignIn(childComplexity, args["user"].(model.UserAuth)), true
+
+	case "Query.getTodo":
+		if e.complexity.Query.GetTodo == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getTodo_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetTodo(childComplexity, args["id"].(int64)), true
 
 	case "Query.lists":
 		if e.complexity.Query.Lists == nil {
@@ -504,6 +504,7 @@ input UserAuth {
 type Query {
   todos(list: ID!): TaskList!
   lists: [ID!]
+  getTodo(id: ID!): Todo
 }
 
 input NewTodo {
@@ -520,7 +521,6 @@ type Mutation {
   createTodo(input: NewTodo!): Todo
   renameTodo(id: ID!, newName: String!): Todo
   deleteTodo(id: ID!): Boolean!
-  getTodo(id: ID!): Todo
   markCompletedTodo(id: ID!): Todo
   createUser(user: UserAuth!): User!
   signIn(user: UserAuth!): JWT
@@ -588,21 +588,6 @@ func (ec *executionContext) field_Mutation_createUser_args(ctx context.Context, 
 }
 
 func (ec *executionContext) field_Mutation_deleteTodo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int64
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2int64(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_getTodo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int64
@@ -707,6 +692,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getTodo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int64
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int64(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -964,45 +964,6 @@ func (ec *executionContext) _Mutation_deleteTodo(ctx context.Context, field grap
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_getTodo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_getTodo_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().GetTodo(rctx, args["id"].(int64))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.Todo)
-	fc.Result = res
-	return ec.marshalOTodo2ᚖgithubᚗcomᚋcassᚑdlcmᚋpomodoro_tasksᚋgraphᚋmodelᚐTodo(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Mutation_markCompletedTodo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -1195,6 +1156,45 @@ func (ec *executionContext) _Query_lists(ctx context.Context, field graphql.Coll
 	res := resTmp.([]int64)
 	fc.Result = res
 	return ec.marshalOID2ᚕint64ᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getTodo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getTodo_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetTodo(rctx, args["id"].(int64))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Todo)
+	fc.Result = res
+	return ec.marshalOTodo2ᚖgithubᚗcomᚋcassᚑdlcmᚋpomodoro_tasksᚋgraphᚋmodelᚐTodo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3182,8 +3182,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "getTodo":
-			out.Values[i] = ec._Mutation_getTodo(ctx, field)
 		case "markCompletedTodo":
 			out.Values[i] = ec._Mutation_markCompletedTodo(ctx, field)
 		case "createUser":
@@ -3242,6 +3240,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_lists(ctx, field)
+				return res
+			})
+		case "getTodo":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getTodo(ctx, field)
 				return res
 			})
 		case "__type":

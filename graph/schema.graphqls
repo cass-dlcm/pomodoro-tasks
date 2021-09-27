@@ -45,6 +45,7 @@ input UserAuth {
 type Query {
   todos(list: ID!): TaskList!
   lists: [ID!]
+  getTodo(id: ID!): Todo
 }
 
 input NewTodo {
@@ -61,7 +62,6 @@ type Mutation {
   createTodo(input: NewTodo!): Todo
   renameTodo(id: ID!, newName: String!): Todo
   deleteTodo(id: ID!): Boolean!
-  getTodo(id: ID!): Todo
   markCompletedTodo(id: ID!): Todo
   createUser(user: UserAuth!): User!
   signIn(user: UserAuth!): JWT

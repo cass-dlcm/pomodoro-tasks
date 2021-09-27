@@ -120,10 +120,11 @@ func hashAndSalt(pwd []byte) string {
 }
 
 func GetUsername(ctx context.Context) string {
-	if ctx.Value("user").(jwt.MapClaims)["username"] == nil {
+	val, ok := ctx.Value("user").(jwt.MapClaims)
+	if !ok {
 		return ""
 	}
-	return ctx.Value("user").(jwt.MapClaims)["username"].(string)
+	return val["username"].(string)
 }
 
 func CheckPermsTodo(todoId int64, ctx context.Context) error {
