@@ -125,7 +125,7 @@ func GetListOnlyUsers(listId int64) (*model.TaskList, error) {
 	if err := db.QueryRow("select listName from lists where id = ?", listId).Scan(&taskList.Name); err != nil {
 		return nil, err
 	}
-	rows, err := db.Query("select user from tasklist_user_link where id = ?", listId)
+	rows, err := db.Query("select user from tasklist_user_link where todoList = ?", listId)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +147,7 @@ func GetListOnlyTasks(listId int64) (*model.TaskList, error) {
 	if err := db.QueryRow("select listName from lists where id = ?", listId).Scan(&taskList.Name); err != nil {
 		return nil, err
 	}
-	rows, err := db.Query("select id, todoName, createdAt, modifiedAt, completedAt from todos where list = ?", listId)
+	rows, err := db.Query("select id, todoName, createdAt, modifiedAt, completedAt from todos where todoList = ?", listId)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, err
 	}

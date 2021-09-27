@@ -29,5 +29,5 @@ func GetSecret(secret string) string {
 	if err != nil {
 		log.Fatalf("failed to retrieve string: %v", err)
 	}
-	return response.GetPayload().String()
+	return string(response.GetPayload().Data)
 }
