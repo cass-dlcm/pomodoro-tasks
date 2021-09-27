@@ -36,7 +36,7 @@ func main() {
 
 	server := &http.Server{
 		Handler: r,
-		Addr: fmt.Sprintf("127.0.0.1:%s", port),
+		Addr:    fmt.Sprintf("127.0.0.1:%s", port),
 	}
 
 	log.Fatal(server.ListenAndServe())
