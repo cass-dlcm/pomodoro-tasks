@@ -14,7 +14,7 @@ import (
 	"github.com/cass-dlcm/pomodoro_tasks/graph/model"
 )
 
-func (r *mutationResolver) AddDependencyTodo(ctx context.Context, dependent int64, dependsOn int64) (*model.Dependency, error) {
+func (r *mutationResolver) AddDependencyTodo(ctx context.Context, dependent int64, dependsOn int64) ([]*model.Todo, error) {
 	if err := auth.CheckPermsTodo(dependent, ctx); err != nil {
 		return nil, err
 	}
@@ -27,7 +27,11 @@ func (r *mutationResolver) AddDependencyTodo(ctx context.Context, dependent int6
 	if found, err := db.CheckDependency(dependent, dependsOn); found == true {
 		return nil, err
 	}
-	return db.AddDependency(dependent, dependsOn)
+	todo, err := db.AddDependency(dependent, dependsOn)
+	if err != nil {
+		return nil, err
+	}
+	return todo, nil
 }
 
 func (r *mutationResolver) RemoveDependencyTodo(ctx context.Context, dependent int64, dependsOn int64) (bool, error) {
@@ -51,12 +55,13 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) 
 		return nil, err
 	}
 	todo := &model.Todo{
-		Name:         input.Name,
-		CreatedAt:    time.Now(),
-		ModifiedAt:   time.Now(),
-		CompletedAt:  nil,
-		List:         input.List,
-		Dependencies: nil,
+		Name:          input.Name,
+		CreatedAt:     time.Now(),
+		ModifiedAt:    time.Now(),
+		CompletedAt:   nil,
+		List:          input.List,
+		DependsOnThis: nil,
+		ThisDependsOn: nil,
 	}
 	todoId, err := db.CreateTodo(*todo)
 	if err != nil {
@@ -73,21 +78,28 @@ func (r *mutationResolver) RenameTodo(ctx context.Context, id int64, newName str
 	return db.RenameTodo(id, newName)
 }
 
-func (r *mutationResolver) DeleteTodo(ctx context.Context, input int64) (bool, error) {
-	if err := auth.CheckPermsTodo(input, ctx); err != nil {
+func (r *mutationResolver) DeleteTodo(ctx context.Context, id int64) (bool, error) {
+	if err := auth.CheckPermsTodo(id, ctx); err != nil {
 		return false, err
 	}
-	if err := db.DeleteTodo(input); err != nil {
+	if err := db.DeleteTodo(id); err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
-func (r *mutationResolver) MarkCompletedTodo(ctx context.Context, input int64) (*model.Todo, error) {
-	if err := auth.CheckPermsTodo(input, ctx); err != nil {
+func (r *mutationResolver) GetTodo(ctx context.Context, id int64) (*model.Todo, error) {
+	if err := auth.CheckPermsTodo(id, ctx); err != nil {
 		return nil, err
 	}
-	return db.UpdateCompletionTodo(input)
+	return db.GetTodo(id)
+}
+
+func (r *mutationResolver) MarkCompletedTodo(ctx context.Context, id int64) (*model.Todo, error) {
+	if err := auth.CheckPermsTodo(id, ctx); err != nil {
+		return nil, err
+	}
+	return db.UpdateCompletionTodo(id)
 }
 
 func (r *mutationResolver) CreateUser(ctx context.Context, user model.UserAuth) (*model.User, error) {

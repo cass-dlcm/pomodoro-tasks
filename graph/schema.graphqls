@@ -9,12 +9,14 @@ type TaskList {
   id: ID!
   users: [ID!]!
   name: String!
-  tasks: [Todo!]!
+  tasks: [TodoStub!]!
 }
 
-type Dependency {
-  dependent: ID!
-  dependsOn: ID!
+type TodoStub {
+  id: ID!
+  name: String!
+  list: ID!
+  completedAt: DateTime
 }
 
 type Todo {
@@ -25,7 +27,8 @@ type Todo {
   modifiedAt: DateTime!
   completedAt: DateTime
   list: ID!
-  dependencies: [Dependency!]!
+  dependsOnThis: [TodoStub!]!
+  thisDependsOn: [TodoStub!]!
 }
 
 type User {
@@ -53,12 +56,13 @@ type Mutation {
 #  createList(input: String!): TaskList
 #  addUsersToList(listName: String!, users: [ID!]!): TaskList
 #  removeUsersFromList(listName: String!, users: [ID!]!): TaskList
-  addDependencyTodo(dependent: ID!, dependsOn: ID!): Dependency
+  addDependencyTodo(dependent: ID!, dependsOn: ID!): [Todo!]
   removeDependencyTodo(dependent: ID!, dependsOn: ID!): Boolean!
   createTodo(input: NewTodo!): Todo
   renameTodo(id: ID!, newName: String!): Todo
-  deleteTodo(input: ID!): Boolean!
-  markCompletedTodo(input: ID!): Todo
+  deleteTodo(id: ID!): Boolean!
+  getTodo(id: ID!): Todo
+  markCompletedTodo(id: ID!): Todo
   createUser(user: UserAuth!): User!
   signIn(user: UserAuth!): JWT
 }
