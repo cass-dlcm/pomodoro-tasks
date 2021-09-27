@@ -16,7 +16,12 @@ func GetSecret(secret string) string {
 	if err != nil {
 		log.Fatalf("failed to setup client: %v", err)
 	}
-	defer client.Close()
+	defer func(client *secretmanager.Client) {
+		err := client.Close()
+		if err != nil {
+			log.Fatalf("failed to close client: %v", err)
+		}
+	}(client)
 	accessRequest := &secretmanagerpb.AccessSecretVersionRequest{
 		Name: fmt.Sprintf("projects/%s/secrets/%s/versions/latest", projectId, secret),
 	}
@@ -24,5 +29,5 @@ func GetSecret(secret string) string {
 	if err != nil {
 		log.Fatalf("failed to retrieve string: %v", err)
 	}
-	return response.GetPayload().String()
+	return string(response.GetPayload().Data)
 }

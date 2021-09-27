@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/cass-dlcm/pomodoro_tasks/backend/db"
+	"github.com/cass-dlcm/pomodoro_tasks/backend/secrets"
 	"github.com/cass-dlcm/pomodoro_tasks/graph/model"
 	"github.com/form3tech-oss/jwt-go"
 	"golang.org/x/crypto/bcrypt"
@@ -14,7 +15,11 @@ import (
 	"time"
 )
 
-const SECRETKEY = "key"
+var secretKey string
+
+func InitAuth() {
+	secretKey = secrets.GetSecret("pomodoro-tasks-jwt-secret")
+}
 
 func JWTMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +34,7 @@ func JWTMiddleware(next http.Handler) http.Handler {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
-			return []byte(SECRETKEY), nil
+			return []byte(secretKey), nil
 		})
 		if err != nil {
 			log.Println(err)
@@ -63,7 +68,7 @@ func CreateToken(user string) (string, error) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
-	return token.SignedString([]byte(SECRETKEY))
+	return token.SignedString([]byte(secretKey))
 }
 
 func CreateUser(user model.UserAuth) (*model.User, error) {

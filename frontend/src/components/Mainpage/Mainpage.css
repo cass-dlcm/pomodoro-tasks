@@ -1,0 +1,179 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@300&display=swap');
+
+body{
+  background-color: #D7E8FF;
+  color: #071B36;
+  height: 100vh;
+  font-family: 'Roboto Slab', Roboto, Arial;
+  font-weight: 700;
+}
+
+.notebook{
+  position: fixed;
+  bottom: 15vh;
+  right: 20vh;
+}
+
+.clock{
+  position: fixed;
+  bottom: 60vh;
+  left: 40vh;
+}
+
+.settime{
+  position: fixed;
+  bottom: 40vh;
+  left: 39vh;
+
+  font-size: 60px;
+}
+
+.timeset{
+  position: fixed;
+  bottom: 25vh;
+  left: 50vh;
+
+  font-size: 40px;
+}
+
+.timebutton{
+  font-family: 'Roboto Slab', Roboto, Arial;
+  font-weight: 700;
+  font-size: 40px;
+  background-color: #071B36;
+  color: white;
+  border-radius: 10px;
+  padding: 20px 60px;
+}
+
+.timebutton a {
+  text-decoration: none;
+  color: white;
+}
+
+.countdown{
+  height: 1000px;
+  position: relative;
+  top: 10vh;
+  left: 20vh;
+  font-size: 70px;
+ /*z-index: 1;*/
+}
+
+.btn-section {
+  position: absolute;
+  bottom: 50px;
+  left: 270px;
+  width: 340px;
+  display: flex;
+  justify-content: space-between;
+  z-index: 1;
+}
+
+.ToDoListApp{
+  position: fixed;
+  top: 15vh;
+  right: 20vh;
+  z-index: 1;
+
+  width: 520px;
+  min-height: 600px;
+  margin: 128px auto;
+
+}
+
+.complete {
+  text-decoration: line-through;
+  opacity: 0.4;
+}
+
+.todo-form {
+  margin-bottom: 32px;
+}
+
+.todo-input {
+  padding: 10px 10px 10px 10px;
+  border-radius: 4px 0 0 4px;
+  border: 2px solid black;
+  outline: none;
+  width: 320px;
+  background: transparent;
+  color: black;
+
+}
+
+.todo-input::placeholder {
+  color: #e2e2e2;
+}
+
+.todo-button {
+  padding: 10px;
+  border: 2px solid #071B36;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+  outline: none;
+  background-color: #071B36;
+  color: #E1E1E1;
+}
+
+
+.todo-container {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+}
+
+.todo-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px auto;
+  color: black;
+
+  width: 320px;
+  background: transparent;
+  padding: 14px 16px 14px 16px;
+  border-radius: 4px 0 0 4px;
+
+}
+
+@media only screen and (min-width : 1224px) and (max-width: 1824px) {
+  .notebook img {
+    height: 500px;
+  }
+  .countdown{
+    top: 5vh;
+    left: -15vh;
+    font-size: 70px;
+    z-index: 1;
+    text-align: center;
+  }
+  .settime{
+    font-size: 50px;
+    left: 44vh;
+    bottom: 36vh;
+  }
+  .timeset{
+    font-size: 30px;
+    left: 45vh;
+    bottom: 24vh;
+  }
+  .timebutton{
+    bottom: 10vh;
+    left: 50vh;
+    font-size: 30px;
+    padding: 10px 30px;
+  }
+  .ToDoListApp{
+    top: 70px;
+    width: 350px;
+    left: 740px;
+    z-index: 1;
+  }
+  .todo-input {
+    padding: 10px 10px 10px 10px;
+    width: 200px;
+  }
+  .todo-button {
+    padding: 10px;
+  }
+}

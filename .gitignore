@@ -13,3 +13,6 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# Google Cloud Service Account credentials
+stidy_creds.json

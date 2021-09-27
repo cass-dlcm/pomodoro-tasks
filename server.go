@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/cass-dlcm/pomodoro_tasks/backend/auth"
 	"github.com/cass-dlcm/pomodoro_tasks/backend/db"
 	"log"
@@ -23,11 +24,20 @@ func main() {
 
 	db.InitDB()
 
+	auth.InitAuth()
+
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
+	buildHandler := http.FileServer(http.Dir("frontend/build"))
 
-	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", auth.JWTMiddleware(srv))
+	r := http.NewServeMux()
+	r.Handle("/playground", playground.Handler("GraphQL playground", "/query"))
+	r.Handle("/query", auth.JWTMiddleware(srv))
+	r.Handle("/", buildHandler)
 
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	server := &http.Server{
+		Handler: r,
+		Addr: fmt.Sprintf("127.0.0.1:%s", port),
+	}
+
+	log.Fatal(server.ListenAndServe())
 }
