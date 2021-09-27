@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"errors"
+	"log"
 	"time"
 
 	"github.com/cass-dlcm/pomodoro_tasks/backend/auth"
@@ -18,6 +19,7 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) 
 	if _, err := db.GetUserUsername(auth.GetUsername(ctx)); err != nil {
 		return nil, err
 	}
+	log.Println(GetPreloads(ctx))
 	todo := &model.Todo{
 		Name:        input.Name,
 		CreatedAt:   time.Now(),
@@ -37,6 +39,7 @@ func (r *mutationResolver) RenameTodo(ctx context.Context, id int64, newName str
 	if err := auth.CheckPermsTodo(id, ctx); err != nil {
 		return nil, err
 	}
+	log.Println(GetPreloads(ctx))
 	return db.RenameTodo(id, newName)
 }
 
@@ -54,6 +57,7 @@ func (r *mutationResolver) MarkCompletedTodo(ctx context.Context, input int64) (
 	if err := auth.CheckPermsTodo(input, ctx); err != nil {
 		return nil, err
 	}
+	log.Println(GetPreloads(ctx))
 	return db.UpdateCompletionTodo(input)
 }
 
@@ -73,6 +77,7 @@ func (r *queryResolver) Todos(ctx context.Context, list int64) (*model.TaskList,
 	if err := auth.CheckPermsList(list, ctx); err != nil {
 		return nil, err
 	}
+	log.Println(GetPreloads(ctx))
 	return db.GetListOnlyTasks(list)
 }
 
@@ -85,6 +90,7 @@ func (r *queryResolver) Lists(ctx context.Context) ([]int64, error) {
 	if err != nil {
 		return nil, err
 	}
+	log.Println(GetPreloads(ctx))
 	return db.GetTaskListsUser(user.ID)
 }
 

@@ -19,7 +19,7 @@ func GetSecret(secret string) string {
 	defer func(client *secretmanager.Client) {
 		err := client.Close()
 		if err != nil {
-			log.Fatalf("failed to close client: %v", err)
+			panic(err)
 		}
 	}(client)
 	accessRequest := &secretmanagerpb.AccessSecretVersionRequest{
