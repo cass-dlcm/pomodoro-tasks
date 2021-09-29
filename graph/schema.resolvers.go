@@ -23,6 +23,7 @@ func (r *mutationResolver) AddDependencyTodo(ctx context.Context, dependent int6
 	if err := auth.CheckPermsTodo(dependsOn, ctx); err != nil {
 		return nil, err
 	}
+	log.Println(GetPreloads(ctx))
 	if ok, err := db.CheckSameList(dependent, dependsOn); err != nil || !ok {
 		return nil, err
 	}
@@ -140,6 +141,7 @@ func (r *queryResolver) GetTodo(ctx context.Context, id int64) (*model.Todo, err
 	if err := auth.CheckPermsTodo(id, ctx); err != nil {
 		return nil, err
 	}
+	log.Println(GetPreloads(ctx))
 	return db.GetTodo(id)
 }
 
@@ -151,4 +153,3 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-
