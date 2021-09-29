@@ -17,6 +17,8 @@ import (
 
 var secretKey string
 
+type contextKey string
+
 func InitAuth() {
 	secretKey = secrets.GetSecret("pomodoro-tasks-jwt-secret")
 }
@@ -41,7 +43,7 @@ func JWTMiddleware(next http.Handler) http.Handler {
 		}
 		log.Println(token.Valid)
 		if token.Valid {
-			ctx := context.WithValue(r.Context(), "user", token.Claims)
+			ctx := context.WithValue(r.Context(), contextKey("user"), token.Claims)
 			// Access context values in handlers like this
 			// props, _ := r.Context().Value("props").(jwt.MapClaims)
 			log.Println(token.Claims.(jwt.MapClaims)["Username"])
