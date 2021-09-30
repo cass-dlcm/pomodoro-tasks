@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/cass-dlcm/pomodoro_tasks/backend/application_errors"
 	"github.com/cass-dlcm/pomodoro_tasks/backend/db"
 	"github.com/cass-dlcm/pomodoro_tasks/backend/secrets"
 	"github.com/cass-dlcm/pomodoro_tasks/graph/model"
@@ -19,8 +20,12 @@ var secretKey string
 
 type contextKey string
 
-func InitAuth() {
-	secretKey = secrets.GetSecret("pomodoro-tasks-jwt-secret")
+func InitAuth() error {
+	var err error
+	if secretKey, err = secrets.GetSecret("pomodoro-tasks-jwt-secret"); err != nil {
+		return err
+	}
+	return nil
 }
 
 func JWTMiddleware(next http.Handler) http.Handler {
@@ -74,11 +79,12 @@ func CreateToken(user string) (string, error) {
 }
 
 func CreateUser(user model.UserAuth) (*model.User, error) {
-	if _, err := db.GetUserUsername(user.Name); errors.Is(err, errors.New("user doesn't exist")) {
-		if err != nil {
+	if _, err := db.GetUserUsername(user.Name); err != nil {
+		if !errors.Is(err, application_errors.ErrNoUser) {
 			return nil, err
 		}
-		return nil, errors.New("user already exists")
+	} else {
+		return nil, application_errors.ErrUserExists
 	}
 	newUserAuth := model.UserAuth{
 		Name:     user.Name,
@@ -108,7 +114,7 @@ func CheckPassword(user model.UserAuth) error {
 		return err
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(userFromDb.Password), []byte(user.Password)); err != nil {
-		return errors.New("incorrect password")
+		return application_errors.ErrIncorrectPass
 	}
 	return nil
 }
@@ -122,13 +128,14 @@ func hashAndSalt(pwd []byte) string {
 }
 
 func GetUsername(ctx context.Context) string {
-	if ctx.Value("user").(jwt.MapClaims)["username"] == nil {
+	val, ok := ctx.Value("user").(jwt.MapClaims)
+	if !ok {
 		return ""
 	}
-	return ctx.Value("user").(jwt.MapClaims)["username"].(string)
+	return val["username"].(string)
 }
 
-func CheckPermsTodo(todoId int64, ctx context.Context) error {
+func CheckPermsTodo(ctx context.Context, todoId int64) error {
 	user, err := db.GetUserUsername(GetUsername(ctx))
 	if err != nil {
 		return err
@@ -146,10 +153,10 @@ func CheckPermsTodo(todoId int64, ctx context.Context) error {
 			return nil
 		}
 	}
-	return errors.New("user doesn't have permission to modify this todo")
+	return application_errors.ErrNoPermissionItem(todoId, " todo", user.Name)
 }
 
-func CheckPermsList(listId int64, ctx context.Context) error {
+func CheckPermsList(ctx context.Context, listId int64) error {
 	user, err := db.GetUserUsername(GetUsername(ctx))
 	if err != nil {
 		return err
@@ -163,5 +170,5 @@ func CheckPermsList(listId int64, ctx context.Context) error {
 			return nil
 		}
 	}
-	return errors.New("user doesn't have permission to modify this todo")
+	return application_errors.ErrNoPermissionItem(listId, " list", user.Name)
 }

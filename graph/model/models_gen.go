@@ -12,19 +12,33 @@ type NewTodo struct {
 }
 
 type TaskList struct {
-	ID    int64   `json:"id"`
-	Users []int64 `json:"users"`
-	Name  string  `json:"name"`
-	Tasks []*Todo `json:"tasks"`
+	ID    int64       `json:"id"`
+	Users []int64     `json:"users"`
+	Name  string      `json:"name"`
+	Tasks []*TodoStub `json:"tasks"`
+}
+
+type TaskListStub struct {
+	ID int64 `json:"id"`
 }
 
 type Todo struct {
+	ID            int64       `json:"id"`
+	Name          string      `json:"name"`
+	Description   *string     `json:"description"`
+	CreatedAt     time.Time   `json:"createdAt"`
+	ModifiedAt    time.Time   `json:"modifiedAt"`
+	CompletedAt   *time.Time  `json:"completedAt"`
+	List          int64       `json:"list"`
+	DependsOnThis []*TodoStub `json:"dependsOnThis"`
+	ThisDependsOn []*TodoStub `json:"thisDependsOn"`
+}
+
+type TodoStub struct {
 	ID          int64      `json:"id"`
 	Name        string     `json:"name"`
-	CreatedAt   time.Time  `json:"createdAt"`
-	ModifiedAt  time.Time  `json:"modifiedAt"`
-	CompletedAt *time.Time `json:"completedAt"`
 	List        int64      `json:"list"`
+	CompletedAt *time.Time `json:"completedAt"`
 }
 
 type User struct {

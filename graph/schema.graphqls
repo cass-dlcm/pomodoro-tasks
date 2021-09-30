@@ -9,22 +9,31 @@ type TaskList {
   id: ID!
   users: [ID!]!
   name: String!
-  tasks: [Todo!]!
+  tasks: [TodoStub!]!
 }
 
-#type Dependency {
-#  dependent: Todo!
-#  dependsOn: Todo!
-#}
+type TaskListStub {
+  id: ID!
+
+}
+
+type TodoStub {
+  id: ID!
+  name: String!
+  list: ID!
+  completedAt: DateTime
+}
 
 type Todo {
   id: ID!
   name: String!
+  description: String
   createdAt: DateTime!
   modifiedAt: DateTime!
   completedAt: DateTime
   list: ID!
-#  dependencies: [Dependency!]!
+  dependsOnThis: [TodoStub!]!
+  thisDependsOn: [TodoStub!]!
 }
 
 type User {
@@ -41,6 +50,8 @@ input UserAuth {
 type Query {
   todos(list: ID!): TaskList!
   lists: [ID!]
+  getTodo(id: ID!): Todo
+  checkDependencyTodo(dependent: ID!, dependsOn: ID!): Boolean
 }
 
 input NewTodo {
@@ -52,12 +63,12 @@ type Mutation {
 #  createList(input: String!): TaskList
 #  addUsersToList(listName: String!, users: [ID!]!): TaskList
 #  removeUsersFromList(listName: String!, users: [ID!]!): TaskList
-#  addDependencyTodo(dependant: ID!, dependsOn: ID!): Dependency
-#  removeDependencyTodo(dependant: ID!, dependsOn: ID!): Boolean
+  addDependencyTodo(dependent: ID!, dependsOn: ID!): [Todo!]
+  removeDependencyTodo(dependent: ID!, dependsOn: ID!): Boolean
   createTodo(input: NewTodo!): Todo
   renameTodo(id: ID!, newName: String!): Todo
-  deleteTodo(input: ID!): Boolean!
-  markCompletedTodo(input: ID!): Todo
+  deleteTodo(id: ID!): Boolean
+  markCompletedTodo(id: ID!): Todo
   createUser(user: UserAuth!): User!
   signIn(user: UserAuth!): JWT
 }
