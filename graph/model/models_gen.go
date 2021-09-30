@@ -18,6 +18,10 @@ type TaskList struct {
 	Tasks []*TodoStub `json:"tasks"`
 }
 
+type TaskListStub struct {
+	ID int64 `json:"id"`
+}
+
 type Todo struct {
 	ID            int64       `json:"id"`
 	Name          string      `json:"name"`

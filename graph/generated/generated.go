@@ -57,9 +57,10 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		GetTodo func(childComplexity int, id int64) int
-		Lists   func(childComplexity int) int
-		Todos   func(childComplexity int, list int64) int
+		CheckDependencyTodo func(childComplexity int, dependent int64, dependsOn int64) int
+		GetTodo             func(childComplexity int, id int64) int
+		Lists               func(childComplexity int) int
+		Todos               func(childComplexity int, list int64) int
 	}
 
 	TaskList struct {
@@ -67,6 +68,10 @@ type ComplexityRoot struct {
 		Name  func(childComplexity int) int
 		Tasks func(childComplexity int) int
 		Users func(childComplexity int) int
+	}
+
+	TaskListStub struct {
+		ID func(childComplexity int) int
 	}
 
 	Todo struct {
@@ -97,10 +102,10 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	AddDependencyTodo(ctx context.Context, dependent int64, dependsOn int64) ([]*model.Todo, error)
-	RemoveDependencyTodo(ctx context.Context, dependent int64, dependsOn int64) (bool, error)
+	RemoveDependencyTodo(ctx context.Context, dependent int64, dependsOn int64) (*bool, error)
 	CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error)
 	RenameTodo(ctx context.Context, id int64, newName string) (*model.Todo, error)
-	DeleteTodo(ctx context.Context, id int64) (bool, error)
+	DeleteTodo(ctx context.Context, id int64) (*bool, error)
 	MarkCompletedTodo(ctx context.Context, id int64) (*model.Todo, error)
 	CreateUser(ctx context.Context, user model.UserAuth) (*model.User, error)
 	SignIn(ctx context.Context, user model.UserAuth) (*string, error)
@@ -109,6 +114,7 @@ type QueryResolver interface {
 	Todos(ctx context.Context, list int64) (*model.TaskList, error)
 	Lists(ctx context.Context) ([]int64, error)
 	GetTodo(ctx context.Context, id int64) (*model.Todo, error)
+	CheckDependencyTodo(ctx context.Context, dependent int64, dependsOn int64) (*bool, error)
 }
 
 type executableSchema struct {
@@ -222,6 +228,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SignIn(childComplexity, args["user"].(model.UserAuth)), true
 
+	case "Query.checkDependencyTodo":
+		if e.complexity.Query.CheckDependencyTodo == nil {
+			break
+		}
+
+		args, err := ec.field_Query_checkDependencyTodo_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.CheckDependencyTodo(childComplexity, args["dependent"].(int64), args["dependsOn"].(int64)), true
+
 	case "Query.getTodo":
 		if e.complexity.Query.GetTodo == nil {
 			break
@@ -280,6 +298,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.TaskList.Users(childComplexity), true
+
+	case "TaskListStub.id":
+		if e.complexity.TaskListStub.ID == nil {
+			break
+		}
+
+		return e.complexity.TaskListStub.ID(childComplexity), true
 
 	case "Todo.completedAt":
 		if e.complexity.Todo.CompletedAt == nil {
@@ -471,6 +496,11 @@ type TaskList {
   tasks: [TodoStub!]!
 }
 
+type TaskListStub {
+  id: ID!
+
+}
+
 type TodoStub {
   id: ID!
   name: String!
@@ -505,6 +535,7 @@ type Query {
   todos(list: ID!): TaskList!
   lists: [ID!]
   getTodo(id: ID!): Todo
+  checkDependencyTodo(dependent: ID!, dependsOn: ID!): Boolean
 }
 
 input NewTodo {
@@ -517,10 +548,10 @@ type Mutation {
 #  addUsersToList(listName: String!, users: [ID!]!): TaskList
 #  removeUsersFromList(listName: String!, users: [ID!]!): TaskList
   addDependencyTodo(dependent: ID!, dependsOn: ID!): [Todo!]
-  removeDependencyTodo(dependent: ID!, dependsOn: ID!): Boolean!
+  removeDependencyTodo(dependent: ID!, dependsOn: ID!): Boolean
   createTodo(input: NewTodo!): Todo
   renameTodo(id: ID!, newName: String!): Todo
-  deleteTodo(id: ID!): Boolean!
+  deleteTodo(id: ID!): Boolean
   markCompletedTodo(id: ID!): Todo
   createUser(user: UserAuth!): User!
   signIn(user: UserAuth!): JWT
@@ -695,6 +726,30 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_checkDependencyTodo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int64
+	if tmp, ok := rawArgs["dependent"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dependent"))
+		arg0, err = ec.unmarshalNID2int64(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["dependent"] = arg0
+	var arg1 int64
+	if tmp, ok := rawArgs["dependsOn"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dependsOn"))
+		arg1, err = ec.unmarshalNID2int64(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["dependsOn"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_getTodo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -834,14 +889,11 @@ func (ec *executionContext) _Mutation_removeDependencyTodo(ctx context.Context, 
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(*bool)
 	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -954,14 +1006,11 @@ func (ec *executionContext) _Mutation_deleteTodo(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(*bool)
 	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_markCompletedTodo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1197,6 +1246,45 @@ func (ec *executionContext) _Query_getTodo(ctx context.Context, field graphql.Co
 	return ec.marshalOTodo2ᚖgithubᚗcomᚋcassᚑdlcmᚋpomodoro_tasksᚋgraphᚋmodelᚐTodo(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_checkDependencyTodo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_checkDependencyTodo_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().CheckDependencyTodo(rctx, args["dependent"].(int64), args["dependsOn"].(int64))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -1406,6 +1494,41 @@ func (ec *executionContext) _TaskList_tasks(ctx context.Context, field graphql.C
 	res := resTmp.([]*model.TodoStub)
 	fc.Result = res
 	return ec.marshalNTodoStub2ᚕᚖgithubᚗcomᚋcassᚑdlcmᚋpomodoro_tasksᚋgraphᚋmodelᚐTodoStubᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TaskListStub_id(ctx context.Context, field graphql.CollectedField, obj *model.TaskListStub) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TaskListStub",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNID2int64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Todo_id(ctx context.Context, field graphql.CollectedField, obj *model.Todo) (ret graphql.Marshaler) {
@@ -3170,18 +3293,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_addDependencyTodo(ctx, field)
 		case "removeDependencyTodo":
 			out.Values[i] = ec._Mutation_removeDependencyTodo(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "createTodo":
 			out.Values[i] = ec._Mutation_createTodo(ctx, field)
 		case "renameTodo":
 			out.Values[i] = ec._Mutation_renameTodo(ctx, field)
 		case "deleteTodo":
 			out.Values[i] = ec._Mutation_deleteTodo(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "markCompletedTodo":
 			out.Values[i] = ec._Mutation_markCompletedTodo(ctx, field)
 		case "createUser":
@@ -3253,6 +3370,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_getTodo(ctx, field)
 				return res
 			})
+		case "checkDependencyTodo":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_checkDependencyTodo(ctx, field)
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -3296,6 +3424,33 @@ func (ec *executionContext) _TaskList(ctx context.Context, sel ast.SelectionSet,
 			}
 		case "tasks":
 			out.Values[i] = ec._TaskList_tasks(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var taskListStubImplementors = []string{"TaskListStub"}
+
+func (ec *executionContext) _TaskListStub(ctx context.Context, sel ast.SelectionSet, obj *model.TaskListStub) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, taskListStubImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TaskListStub")
+		case "id":
+			out.Values[i] = ec._TaskListStub_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/cass-dlcm/pomodoro_tasks/backend/application_errors"
 	"github.com/cass-dlcm/pomodoro_tasks/backend/secrets"
 	"time"
 
@@ -34,7 +35,7 @@ func GetUserUsername(username string) (*model.User, error) {
 		if !errors.Is(err, sql.ErrNoRows) {
 			return nil, err
 		}
-		return nil, errors.New("no user found")
+		return nil, application_errors.ErrNoUser
 	}
 	var err error
 	user.Lists, err = GetTaskListsUser(user.ID)
@@ -47,6 +48,9 @@ func GetUserUsername(username string) (*model.User, error) {
 func GetUserAuthUsername(username string) (*model.UserAuth, error) {
 	user := &model.UserAuth{}
 	if err := db.QueryRow("select username, password from users where username = ?", username).Scan(&user.Name, &user.Password); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, application_errors.ErrNoUser
+		}
 		return nil, err
 	}
 	return user, nil
@@ -95,11 +99,14 @@ func CreateList(user int64, name string) (*int64, error) {
 
 func GetTodo(id int64) (*model.Todo, error) {
 	todo := model.Todo{
-		ID: id,
+		ID:            id,
 		DependsOnThis: []*model.TodoStub{},
 		ThisDependsOn: []*model.TodoStub{},
 	}
 	if err := db.QueryRow("select todoName, createdAt, modifiedAt, completedAt, todoList from todos where id = ?", id).Scan(&todo.Name, &todo.CreatedAt, &todo.ModifiedAt, &todo.CompletedAt, &todo.List); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, application_errors.ErrCannotFetchTodoItem(id, "")
+		}
 		return nil, err
 	}
 	rows, err := db.Query("select dependent from dependencies where dependsOn = ?", id)
@@ -151,6 +158,9 @@ func GetListOnlyUsers(listId int64) (*model.TaskList, error) {
 		Users: []int64{},
 	}
 	if err := db.QueryRow("select listName from lists where id = ?", listId).Scan(&taskList.Name); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, application_errors.ErrCannotFetchTodoList(listId)
+		}
 		return nil, err
 	}
 	rows, err := db.Query("select user from tasklist_user_link where todoList = ?", listId)
