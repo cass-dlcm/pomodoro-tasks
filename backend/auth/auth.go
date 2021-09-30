@@ -131,7 +131,7 @@ func GetUsername(ctx context.Context) string {
 	return val["username"].(string)
 }
 
-func CheckPermsTodo(todoId int64, ctx context.Context) error {
+func CheckPermsTodo(ctx context.Context, todoId int64) error {
 	user, err := db.GetUserUsername(GetUsername(ctx))
 	if err != nil {
 		return err
@@ -152,7 +152,7 @@ func CheckPermsTodo(todoId int64, ctx context.Context) error {
 	return application_errors.ErrNoPermissionItem(todoId, " todo", user.Name)
 }
 
-func CheckPermsList(listId int64, ctx context.Context) error {
+func CheckPermsList(ctx context.Context, listId int64) error {
 	user, err := db.GetUserUsername(GetUsername(ctx))
 	if err != nil {
 		return err

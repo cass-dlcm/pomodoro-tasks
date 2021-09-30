@@ -90,6 +90,9 @@ func CreateList(user int64, name string) (*int64, error) {
 		return nil, err
 	}
 	res, err = db.Exec("insert into tasklist_user_link (user, todoList) values (?, ?)", user, id)
+	if err != nil {
+		return nil, err
+	}
 	id, err = res.LastInsertId()
 	if err != nil {
 		return nil, err

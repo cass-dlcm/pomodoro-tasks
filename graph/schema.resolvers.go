@@ -18,7 +18,7 @@ import (
 )
 
 func (_ *mutationResolver) AddDependencyTodo(ctx context.Context, dependent int64, dependsOn int64) ([]*model.Todo, error) {
-	if err := auth.CheckPermsTodo(dependent, ctx); err != nil {
+	if err := auth.CheckPermsTodo(ctx, dependent); err != nil {
 		if errors.Is(err, application_errors.ErrNoUser) {
 			log.Printf("attempt to remove dependency %d:%d by nonexistant user", dependent, dependsOn)
 			return nil, application_errors.ErrPleaseAuth
@@ -31,7 +31,7 @@ func (_ *mutationResolver) AddDependencyTodo(ctx context.Context, dependent int6
 		}
 		return nil, application_errors.ErrUnspecified(err)
 	}
-	if err := auth.CheckPermsTodo(dependsOn, ctx); err != nil {
+	if err := auth.CheckPermsTodo(ctx, dependsOn); err != nil {
 		if errors.Is(err, application_errors.ErrCannotFetchTodoItemNoPrint(dependsOn, "")) {
 			return nil, application_errors.ErrCannotFetchTodoItemNoPrint(dependsOn, " dependsOn")
 		}
@@ -65,7 +65,7 @@ func (_ *mutationResolver) AddDependencyTodo(ctx context.Context, dependent int6
 }
 
 func (_ *mutationResolver) RemoveDependencyTodo(ctx context.Context, dependent int64, dependsOn int64) (*bool, error) {
-	if err := auth.CheckPermsTodo(dependent, ctx); err != nil {
+	if err := auth.CheckPermsTodo(ctx, dependent); err != nil {
 		if errors.Is(err, application_errors.ErrNoUser) {
 			log.Printf("attempt to remove dependency %d:%d by nonexistant user", dependent, dependsOn)
 			return nil, application_errors.ErrPleaseAuth
@@ -78,7 +78,7 @@ func (_ *mutationResolver) RemoveDependencyTodo(ctx context.Context, dependent i
 		}
 		return nil, application_errors.ErrUnspecified(err)
 	}
-	if err := auth.CheckPermsTodo(dependsOn, ctx); err != nil {
+	if err := auth.CheckPermsTodo(ctx, dependsOn); err != nil {
 		if errors.Is(err, application_errors.ErrCannotFetchTodoItemNoPrint(dependsOn, "")) {
 			return nil, application_errors.ErrCannotFetchTodoItemNoPrint(dependsOn, " dependsOn")
 		}
@@ -135,7 +135,7 @@ func (_ *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) 
 }
 
 func (_ *mutationResolver) RenameTodo(ctx context.Context, id int64, newName string) (*model.Todo, error) {
-	if err := auth.CheckPermsTodo(id, ctx); err != nil {
+	if err := auth.CheckPermsTodo(ctx, id); err != nil {
 		if errors.Is(err, application_errors.ErrNoPermissionItemNoPrint(id, " todo")) || errors.Is(err, application_errors.ErrCannotFetchTodoItemNoPrint(id, "")) {
 			return nil, err
 		}
@@ -150,7 +150,7 @@ func (_ *mutationResolver) RenameTodo(ctx context.Context, id int64, newName str
 }
 
 func (_ *mutationResolver) DeleteTodo(ctx context.Context, id int64) (*bool, error) {
-	if err := auth.CheckPermsTodo(id, ctx); err != nil {
+	if err := auth.CheckPermsTodo(ctx, id); err != nil {
 		if errors.Is(err, application_errors.ErrNoPermissionItemNoPrint(id, " todo")) || errors.Is(err, application_errors.ErrCannotFetchTodoItemNoPrint(id, "")) {
 			return nil, err
 		}
@@ -164,7 +164,7 @@ func (_ *mutationResolver) DeleteTodo(ctx context.Context, id int64) (*bool, err
 }
 
 func (_ *mutationResolver) MarkCompletedTodo(ctx context.Context, id int64) (*model.Todo, error) {
-	if err := auth.CheckPermsTodo(id, ctx); err != nil {
+	if err := auth.CheckPermsTodo(ctx, id); err != nil {
 		if errors.Is(err, application_errors.ErrNoPermissionItemNoPrint(id, " todo")) || errors.Is(err, application_errors.ErrCannotFetchTodoItemNoPrint(id, "")) {
 			return nil, err
 		}
@@ -210,7 +210,7 @@ func (_ *mutationResolver) SignIn(ctx context.Context, user model.UserAuth) (*st
 }
 
 func (_ *queryResolver) Todos(ctx context.Context, list int64) (*model.TaskList, error) {
-	if err := auth.CheckPermsList(list, ctx); err != nil {
+	if err := auth.CheckPermsList(ctx, list); err != nil {
 		if errors.Is(err, application_errors.ErrNoPermissionItemNoPrint(list, " list")) || errors.Is(err, application_errors.ErrCannotFetchTodoListNoPrint(list)) || errors.Is(err, application_errors.ErrNoUser) {
 			return nil, err
 		}
@@ -241,7 +241,7 @@ func (_ *queryResolver) Lists(ctx context.Context) ([]int64, error) {
 }
 
 func (_ *queryResolver) GetTodo(ctx context.Context, id int64) (*model.Todo, error) {
-	if err := auth.CheckPermsTodo(id, ctx); err != nil {
+	if err := auth.CheckPermsTodo(ctx, id); err != nil {
 		if errors.Is(err, application_errors.ErrNoPermissionItemNoPrint(id, " todo")) {
 			return nil, err
 		}
@@ -255,7 +255,7 @@ func (_ *queryResolver) GetTodo(ctx context.Context, id int64) (*model.Todo, err
 }
 
 func (_ *queryResolver) CheckDependencyTodo(ctx context.Context, dependent int64, dependsOn int64) (*bool, error) {
-	if err := auth.CheckPermsTodo(dependent, ctx); err != nil {
+	if err := auth.CheckPermsTodo(ctx, dependent); err != nil {
 		if errors.Is(err, application_errors.ErrNoPermissionItemNoPrint(dependent, " todo")) {
 			return nil, err
 		}
@@ -264,7 +264,7 @@ func (_ *queryResolver) CheckDependencyTodo(ctx context.Context, dependent int64
 		}
 		return nil, application_errors.ErrUnspecified(err)
 	}
-	if err := auth.CheckPermsTodo(dependsOn, ctx); err != nil {
+	if err := auth.CheckPermsTodo(ctx, dependsOn); err != nil {
 		if errors.Is(err, application_errors.ErrNoPermissionItemNoPrint(dependsOn, " todo")) {
 			return nil, err
 		}

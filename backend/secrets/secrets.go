@@ -14,7 +14,7 @@ func GetSecret(secret string) string {
 	ctx := context.Background()
 	client, err := secretmanager.NewClient(ctx)
 	if err != nil {
-		log.Fatalf("failed to setup client: %v", err)
+		log.Panicf("failed to setup client: %v", err)
 	}
 	defer func(client *secretmanager.Client) {
 		err := client.Close()
@@ -27,7 +27,7 @@ func GetSecret(secret string) string {
 	}
 	response, err := client.AccessSecretVersion(ctx, accessRequest)
 	if err != nil {
-		log.Fatalf("failed to retrieve string: %v", err)
+		log.Panicf("failed to retrieve string: %v", err)
 	}
 	return string(response.GetPayload().Data)
 }
