@@ -15,18 +15,28 @@ import (
 
 var db *sql.DB
 
-func InitDB() {
+func InitDB() error {
 	var err error
-	user := secrets.GetSecret("pomodoro-tasks-db-user")
-	password := secrets.GetSecret("pomodoro-tasks-db-password")
-	host := secrets.GetSecret("pomodoro-tasks-db-host")
+	user, err := secrets.GetSecret("pomodoro-tasks-db-user")
+	if err != nil {
+		return err
+	}
+	password, err := secrets.GetSecret("pomodoro-tasks-db-password")
+	if err != nil {
+		return err
+	}
+	host, err := secrets.GetSecret("pomodoro-tasks-db-host")
+	if err != nil {
+		return err
+	}
 	db, err = sql.Open("mysql", fmt.Sprintf("%s:%s@%s/db?parseTime=True", user, password, host))
 	if err != nil {
-		panic(err)
+		return err
 	}
 	db.SetConnMaxLifetime(time.Minute * 3)
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(10)
+	return nil
 }
 
 func GetUserUsername(username string) (*model.User, error) {

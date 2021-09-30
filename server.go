@@ -22,9 +22,13 @@ func main() {
 		port = defaultPort
 	}
 
-	db.InitDB()
+	if err := db.InitDB(); err != nil {
+		log.Panicln(err)
+	}
 
-	auth.InitAuth()
+	if err := auth.InitAuth(); err != nil {
+		log.Panicln(err)
+	}
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
 	buildHandler := http.FileServer(http.Dir("frontend/build"))
@@ -39,5 +43,5 @@ func main() {
 		Addr:    fmt.Sprintf("127.0.0.1:%s", port),
 	}
 
-	log.Fatal(server.ListenAndServe())
+	log.Fatalln(server.ListenAndServe())
 }

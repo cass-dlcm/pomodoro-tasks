@@ -20,8 +20,12 @@ var secretKey string
 
 type contextKey string
 
-func InitAuth() {
-	secretKey = secrets.GetSecret("pomodoro-tasks-jwt-secret")
+func InitAuth() error {
+	var err error
+	if secretKey, err = secrets.GetSecret("pomodoro-tasks-jwt-secret"); err != nil {
+		return err
+	}
+	return nil
 }
 
 func JWTMiddleware(next http.Handler) http.Handler {

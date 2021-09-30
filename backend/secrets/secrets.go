@@ -5,16 +5,15 @@ import (
 	"context"
 	"fmt"
 	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
-	"log"
 )
 
 var projectId = "pomodoro-tasks-327213"
 
-func GetSecret(secret string) string {
+func GetSecret(secret string) (string, error) {
 	ctx := context.Background()
 	client, err := secretmanager.NewClient(ctx)
 	if err != nil {
-		log.Panicf("failed to setup client: %v", err)
+		return "", fmt.Errorf("failed to setup client: %v", err)
 	}
 	defer func(client *secretmanager.Client) {
 		err := client.Close()
@@ -27,7 +26,7 @@ func GetSecret(secret string) string {
 	}
 	response, err := client.AccessSecretVersion(ctx, accessRequest)
 	if err != nil {
-		log.Panicf("failed to retrieve string: %v", err)
+		return "", fmt.Errorf("failed to retrieve string: %v", err)
 	}
-	return string(response.GetPayload().Data)
+	return string(response.GetPayload().Data), nil
 }
