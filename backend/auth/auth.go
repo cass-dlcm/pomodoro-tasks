@@ -18,7 +18,7 @@ import (
 
 var secretKey string
 
-type contextKey string
+type ContextKey string
 
 func InitAuth() error {
 	var err error
@@ -32,8 +32,7 @@ func JWTMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
 		if len(authHeader) != 2 {
-			log.Println("Malformed token")
-			next.ServeHTTP(w, r)
+			next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ContextKey("ip"), r.RemoteAddr)))
 			return
 		}
 		jwtToken := authHeader[1]
@@ -48,7 +47,7 @@ func JWTMiddleware(next http.Handler) http.Handler {
 		}
 		log.Println(token.Valid)
 		if token.Valid {
-			ctx := context.WithValue(r.Context(), contextKey("user"), token.Claims)
+			ctx := context.WithValue(r.Context(), ContextKey("user"), token.Claims)
 			// Access context values in handlers like this
 			// props, _ := r.Context().Value("props").(jwt.MapClaims)
 			log.Println(token.Claims.(jwt.MapClaims)["Username"])
@@ -56,7 +55,7 @@ func JWTMiddleware(next http.Handler) http.Handler {
 		} else {
 			log.Println("claims not okay")
 			log.Println(token.Claims)
-			next.ServeHTTP(w, r)
+			next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ContextKey("ip"), r.RemoteAddr)))
 		}
 	})
 }
@@ -108,13 +107,13 @@ func CreateUser(user model.UserAuth) (*model.User, error) {
 	return newUser, nil
 }
 
-func CheckPassword(user model.UserAuth) error {
+func CheckPassword(user model.UserAuth, count *int) error {
 	userFromDb, err := db.GetUserAuthUsername(user.Name)
 	if err != nil {
 		return err
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(userFromDb.Password), []byte(user.Password)); err != nil {
-		return application_errors.ErrIncorrectPass
+		return application_errors.ErrIncorrectPass(user.Name, 1<<(*count+1))
 	}
 	return nil
 }

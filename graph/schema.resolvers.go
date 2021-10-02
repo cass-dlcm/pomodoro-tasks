@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"math"
 	"time"
 
 	"github.com/cass-dlcm/pomodoro_tasks/backend/application_errors"
@@ -196,10 +197,36 @@ func (*mutationResolver) SignIn(ctx context.Context, user model.UserAuth) (*stri
 	if auth.GetUsername(ctx) != "" {
 		return nil, application_errors.ErrAlreadySignedIn
 	}
-	if err := auth.CheckPassword(user); err != nil {
-		if errors.Is(err, application_errors.ErrNoUser) || errors.Is(err, application_errors.ErrIncorrectPass) {
+	userInfo, err := db.GetUserUsername(user.Name)
+	if err != nil {
+		if errors.Is(err, application_errors.ErrNoUser) {
 			return nil, err
 		}
+		return nil, application_errors.ErrUnspecified(err)
+	}
+	count, lastFailedLogin, err := db.GetTimeout(userInfo.ID, ctx.Value(auth.ContextKey("ip")).(string))
+	if err == nil {
+		if time.Now().Before(lastFailedLogin.Add(time.Second * 1 << *count)) {
+			return nil, application_errors.ErrPleaseWaitForAuth(user.Name, int64(math.Ceil(time.Until(lastFailedLogin.Add(time.Second*2<<*count)).Seconds())))
+		}
+	}
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, application_errors.ErrUnspecified(err)
+	}
+	if count == nil {
+		countVal := 0
+		count = &countVal
+	}
+	if err := auth.CheckPassword(user, count); err != nil {
+		if err.Error() == application_errors.ErrIncorrectPassNoPrint(user.Name, 1<<(*count+1)).Error() {
+			if err := db.IncrementTimeout(userInfo.ID, ctx.Value(auth.ContextKey("ip")).(string), *count+1); err != nil {
+				return nil, application_errors.ErrUnspecified(err)
+			}
+			return nil, err
+		}
+		return nil, application_errors.ErrUnspecified(err)
+	}
+	if err := db.DeleteTimeout(userInfo.ID, ctx.Value(auth.ContextKey("ip")).(string)); err != nil {
 		return nil, application_errors.ErrUnspecified(err)
 	}
 	token, err := auth.CreateToken(user.Name)

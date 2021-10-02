@@ -288,3 +288,31 @@ func CheckSameList(dependent, dependsOn int64) (bool, error) {
 	}
 	return dependentTodo.List == dependsOnTodo.List, nil
 }
+
+func GetTimeout(id int64, ipaddr string) (*int, *time.Time, error) {
+	var lastFailedLogin time.Time
+	var count int
+	if err := db.QueryRow("select failed_auth_count, last_failed_auth from user_auth_rate_limits where user_id = ? and ip_addr = ?", id, ipaddr).Scan(&count, &lastFailedLogin); err != nil {
+		return nil, nil, err
+	}
+	return &count, &lastFailedLogin, nil
+}
+
+func IncrementTimeout(id int64, ipaddr string, count int) error {
+	if _, _, err := GetTimeout(id, ipaddr); errors.Is(err, sql.ErrNoRows) {
+		if _, err := db.Exec("insert into user_auth_rate_limits (user_id, ip_addr, failed_auth_count, last_failed_auth) values (?, ?, ?, ?)", id, ipaddr, count, time.Now()); err != nil {
+			return err
+		}
+		return nil
+	}
+	_, err := db.Exec("update user_auth_rate_limits set failed_auth_count = ?, last_failed_auth = ? where user_id = ? and ip_addr = ?", count, time.Now(), id, ipaddr)
+	return err
+}
+
+func DeleteTimeout(id int64, ipaddr string) error {
+	_, err := db.Exec("delete from user_auth_rate_limits where user_id = ? and ip_addr = ?", id, ipaddr)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil
+	}
+	return err
+}

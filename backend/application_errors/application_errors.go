@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"github.com/cass-dlcm/pomodoro_tasks/graph/model"
 	"log"
+	"runtime/debug"
 	"time"
 )
 
 var ErrNoUser = errors.New("no user found")
 var ErrUserExists = errors.New("user already exists")
-var ErrIncorrectPass = errors.New("incorrect password")
 var ErrPleaseAuth = errors.New("please log in and try again")
 var ErrNoDependency = errors.New("no dependency found")
 var ErrDependencyFound = errors.New("dependency found")
@@ -49,5 +49,24 @@ func ErrCannotFetchTodoListNoPrint(item int64) error {
 
 func ErrUnspecified(err error) error {
 	log.Println(err)
+	debug.PrintStack()
 	return fmt.Errorf("%v: an unspecified error has occured\nplease let the admin know and give this timestamp", time.Now().Format("2006-01-02 15:04:05"))
+}
+
+func ErrIncorrectPass(username string, timeout int64) error {
+	log.Println(ErrIncorrectPassNoPrint(username, timeout).Error())
+	return ErrIncorrectPassNoPrint(username, timeout)
+}
+
+func ErrIncorrectPassNoPrint(username string, timeout int64) error {
+	return fmt.Errorf("incorrect password for user %s, please try again in %d seconds", username, timeout)
+}
+
+func ErrPleaseWaitForAuth(username string, timeout int64) error {
+	log.Println(ErrPleaseWaitForAuthNoPrint(username, timeout).Error())
+	return ErrPleaseWaitForAuthNoPrint(username, timeout)
+}
+
+func ErrPleaseWaitForAuthNoPrint(username string, timeout int64) error {
+	return fmt.Errorf("user %s is on login timeout, please try again in %d seconds", username, timeout)
 }
