@@ -207,7 +207,7 @@ func (*mutationResolver) SignIn(ctx context.Context, user model.UserAuth) (*stri
 	count, lastFailedLogin, err := db.GetTimeout(userInfo.ID, ctx.Value(auth.ContextKey("ip")).(string))
 	if err == nil {
 		if time.Now().Before(lastFailedLogin.Add(time.Second * 1 << *count)) {
-			return nil, application_errors.ErrPleaseWaitForAuth(user.Name, int64(math.Ceil(lastFailedLogin.Add(time.Second*2<<*count).Sub(time.Now()).Seconds())))
+			return nil, application_errors.ErrPleaseWaitForAuth(user.Name, int64(math.Ceil(time.Until(lastFailedLogin.Add(time.Second*2<<*count)).Seconds())))
 		}
 	}
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
