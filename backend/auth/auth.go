@@ -89,7 +89,6 @@ func CreateUser(user model.UserAuth) (*model.User, error) {
 		Name:     user.Name,
 		Password: hashAndSalt([]byte(user.Password)),
 	}
-	log.Println(newUserAuth.Password)
 	newUser := &model.User{
 		Name:  user.Name,
 		Lists: nil,

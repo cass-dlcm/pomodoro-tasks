@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
+	"strings"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -15,6 +17,7 @@ import (
 )
 
 const defaultPort = "8080"
+const FSPATH = "./frontend/build/"
 
 func main() {
 	port := os.Getenv("PORT")
@@ -31,12 +34,26 @@ func main() {
 	}
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
-	buildHandler := http.FileServer(http.Dir("frontend/build"))
+	fs := http.FileServer(http.Dir(FSPATH))
 
 	r := http.NewServeMux()
 	r.Handle("/playground", playground.Handler("GraphQL playground", "/query"))
 	r.Handle("/query", auth.JWTMiddleware(srv))
-	r.Handle("/", buildHandler)
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// If the requested file exists then return if; otherwise return index.html (fileserver default page)
+		if r.URL.Path != "/" {
+			fullPath := FSPATH + strings.TrimPrefix(path.Clean(r.URL.Path), "/")
+			_, err := os.Stat(fullPath)
+			if err != nil {
+				if !os.IsNotExist(err) {
+					panic(err)
+				}
+				// Requested file does not exist so we return the default (resolves to index.html)
+				r.URL.Path = "/"
+			}
+		}
+		fs.ServeHTTP(w, r)
+	})
 
 	server := &http.Server{
 		Handler: r,
