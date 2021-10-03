@@ -1,14 +1,6 @@
 import styles from "./SignUp.module.scss";
-
-import {
-    ApolloClient,
-    InMemoryCache,
-    ApolloProvider,
-    useMutation,
-    gql
-} from "@apollo/client";
-
-
+import {Redirect, useHistory} from "react-router";
+import { gql, useMutation } from "@apollo/client";
 
 const MUT = gql`mutation CreateUser($name: String!, $password: String!) { createUser(user: {name: $name, password: $password}){id}}`;
 
@@ -19,6 +11,7 @@ export function SignUp () {
 
     if (loading) return 'Submitting...';
     if (error) return `Submission error! ${error.message}`;
+    if (data) return <Redirect to={'/'} />;
 
     return (
         <div>

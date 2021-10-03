@@ -35,6 +35,10 @@ func JWTMiddleware(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ContextKey("ip"), r.RemoteAddr)))
 			return
 		}
+		if authHeader[1] == "undefined" {
+			next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ContextKey("ip"), r.RemoteAddr)))
+			return
+		}
 		jwtToken := authHeader[1]
 		token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {

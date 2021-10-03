@@ -5,15 +5,24 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import {ApolloClient, InMemoryCache, ApolloProvider} from "@apollo/client";
 
+let jwt;
+
+const getJWT = (val) => {
+    jwt = val;
+}
+
 const client = new ApolloClient({
     uri: 'http://localhost:8080/query',
-    cache: new InMemoryCache()
+    cache: new InMemoryCache(),
+    headers: {
+        authorization: "Bearer " + jwt
+    }
 });
 
 ReactDOM.render(
   <React.StrictMode>
       <ApolloProvider client={client}>
-        <App />
+        <App setJWT={getJWT}/>
       </ApolloProvider>
   </React.StrictMode>,
   document.getElementById('root')
