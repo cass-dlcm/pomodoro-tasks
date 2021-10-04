@@ -1,5 +1,5 @@
 import styles from "./Home.module.scss";
-import {Redirect, useHistory} from "react-router";
+import {useHistory} from "react-router";
 import { gql, useMutation } from "@apollo/client";
 
 const MUT = gql`mutation SignIn($name: String!, $pass: String!) { signIn(user: {name: $name, password: $pass})}`
