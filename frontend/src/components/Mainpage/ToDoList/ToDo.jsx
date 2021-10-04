@@ -6,8 +6,8 @@ const ToDo = (props) => {
             className={props.todo.completedAt ? 'todo-row complete' : 'todo-row'}
             key={props.key}
         >
-            {props.todo.text}
             <ToDoCheckbox todo={props.todo} />
+            {props.todo.text}
         </div>
 };
 

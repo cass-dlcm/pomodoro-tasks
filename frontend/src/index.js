@@ -6,12 +6,12 @@ import reportWebVitals from './reportWebVitals';
 import {ApolloClient, InMemoryCache, ApolloProvider} from "@apollo/client";
 
 ReactDOM.render(
-  <React.StrictMode>
-      <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    <React.StrictMode>
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
             rel="stylesheet" />
         <App />
-  </React.StrictMode>,
-  document.getElementById('root')
+    </React.StrictMode>,
+    document.getElementById('root')
 );
 
 // If you want to start measuring performance in your app, pass a function
