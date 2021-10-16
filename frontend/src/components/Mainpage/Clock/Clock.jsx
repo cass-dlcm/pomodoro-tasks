@@ -10,17 +10,16 @@ export const Clock  = (size, isPlaying) => {
   const minutes = Math.floor(remainingTime / 60)
   const seconds = remainingTime % 60
   
-  return `${minutes}:${seconds}`
+  return <div style={{fontSize: "xxx-large"}}>{`${minutes}:${seconds}`}</div>
   }
 
   return(
-    <div class="countdown">
+    <div className="clock">
       <CountdownCircleTimer
         key={key}
         isPlaying 
         size="300"
         duration={1500}
-
         colors={[
           ['#004777', 0.33],
           ['#F7B801', 0.33],

@@ -27,24 +27,30 @@ export const ToDoList = (props) => {
     if (data) {
         return <>
             <ToDoForm list={props.list}/>
-            {data.todos.tasks.map((todo) => (
-                <ToDo
-                    key={todo.id}
-                    todo={todo}
-                />
-            ))}
+            <div className={'todo-container'}>
+                {data.todos.tasks.map((todo, index) => (
+                    <ToDo
+                        key={todo.id}
+                        index={index}
+                        todo={todo}
+                    />
+                ))}
+            </div>
         </>
     }
 
     if (props.list.tasks) {
         return <>
             <ToDoForm list={props.list}/>
-            {props.list.tasks.map((todo) => (
-                <ToDo
-                    key={todo.id}
-                    todo={todo}
-                />
-            ))}
+            <div className={'todo-container'}>
+                {props.list.tasks.map((todo, index) => (
+                    <ToDo
+                        key={todo.id}
+                        index={index}
+                        todo={todo}
+                    />
+                ))}
+            </div>
         </>
     }
 

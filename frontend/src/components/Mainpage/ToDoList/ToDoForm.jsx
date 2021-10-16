@@ -27,7 +27,6 @@ function ToDoForm(props){
     return (
         <form onSubmit={e => {
             e.preventDefault();
-            alert(input);
             createTodo({variables: {name: input, list: props.list.id}})
         }} className='todo-form'>
             <input

@@ -9,6 +9,8 @@ ReactDOM.render(
     <React.StrictMode>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
             rel="stylesheet" />
+        <link rel="stylesheet"
+              href="https://fonts.googleapis.com/css?family=Waiting+for+the+Sunrise"/>
         <App />
     </React.StrictMode>,
     document.getElementById('root')

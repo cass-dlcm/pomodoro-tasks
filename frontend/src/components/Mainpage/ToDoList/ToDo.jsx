@@ -3,11 +3,12 @@ import { ToDoCheckbox } from './ToDoCheckbox';
 
 const ToDo = (props) => {
     return <div
-            className={props.todo.completedAt ? 'todo-row complete' : 'todo-row'}
+            className={`todo-row`}
             key={props.key}
+            style={{order: props.index}}
         >
             <ToDoCheckbox todo={props.todo} />
-            {props.todo.text}
+            {props.todo.name}
         </div>
 };
 
