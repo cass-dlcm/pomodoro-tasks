@@ -9,12 +9,11 @@ export const BreakClock  = (size, isPlaying) => {
     const children = ({ remainingTime }) => {
     const minutes = Math.floor(remainingTime / 60)
     const seconds = remainingTime % 60
-  
-    return `${minutes}:${seconds}`
+        return <div style={{fontSize: "xxx-large"}}>{`${minutes}:${seconds}`}</div>
   }
 
   return(
-    <div class="countdown">
+    <div className="clock">
       <CountdownCircleTimer
         key={key}
         isPlaying 

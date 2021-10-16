@@ -1,23 +1,15 @@
-import React, { useState } from 'react';
-import ToDoForm from './ToDoForm';
+import React from 'react';
+import { ToDoCheckbox } from './ToDoCheckbox';
 
-
-const ToDo = ({ todos, completeTodo, removeTodo }) => {
-  const [edit, setEdit] = useState({
-    id: null,
-    value: ''
-  });
-  return todos.map((todo, index) => (
-    <div
-      className={todo.isComplete ? 'todo-row complete' : 'todo-row'}
-      key={index}
-    >
-      <div key={todo.id} onClick={() => completeTodo(todo.id)}>
-        {todo.text}
-      </div>
-     
-    </div>
-  ));
+const ToDo = (props) => {
+    return <div
+            className={`todo-row`}
+            key={props.key}
+            style={{order: props.index}}
+        >
+            <ToDoCheckbox todo={props.todo} />
+            {props.todo.name}
+        </div>
 };
 
 export default ToDo;

@@ -35,6 +35,11 @@ func JWTMiddleware(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ContextKey("ip"), r.RemoteAddr)))
 			return
 		}
+		if authHeader[1] == "undefined" {
+			log.Println("not signed user detected")
+			next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ContextKey("ip"), r.RemoteAddr)))
+			return
+		}
 		jwtToken := authHeader[1]
 		token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -45,7 +50,6 @@ func JWTMiddleware(next http.Handler) http.Handler {
 		if err != nil {
 			log.Println(err)
 		}
-		log.Println(token.Valid)
 		if token.Valid {
 			ctx := context.WithValue(r.Context(), ContextKey("user"), token.Claims)
 			// Access context values in handlers like this
@@ -79,7 +83,7 @@ func CreateToken(user string) (string, error) {
 
 func CreateUser(user model.UserAuth) (*model.User, error) {
 	if _, err := db.GetUserUsername(user.Name); err != nil {
-		if !errors.Is(err, application_errors.ErrNoUser) {
+		if !errors.Is(err, application_errors.ErrNoUserNoPrint(user.Name)) {
 			return nil, err
 		}
 	} else {
@@ -89,7 +93,6 @@ func CreateUser(user model.UserAuth) (*model.User, error) {
 		Name:     user.Name,
 		Password: hashAndSalt([]byte(user.Password)),
 	}
-	log.Println(newUserAuth.Password)
 	newUser := &model.User{
 		Name:  user.Name,
 		Lists: nil,

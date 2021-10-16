@@ -20,7 +20,7 @@ import (
 
 func (*mutationResolver) AddDependencyTodo(ctx context.Context, dependent int64, dependsOn int64) ([]*model.Todo, error) {
 	if err := auth.CheckPermsTodo(ctx, dependent); err != nil {
-		if errors.Is(err, application_errors.ErrNoUser) {
+		if errors.Is(err, application_errors.ErrNoUserNoPrint(auth.GetUsername(ctx))) {
 			log.Printf("attempt to remove dependency %d:%d by nonexistant user", dependent, dependsOn)
 			return nil, application_errors.ErrPleaseAuth
 		}
@@ -67,7 +67,7 @@ func (*mutationResolver) AddDependencyTodo(ctx context.Context, dependent int64,
 
 func (*mutationResolver) RemoveDependencyTodo(ctx context.Context, dependent int64, dependsOn int64) (*bool, error) {
 	if err := auth.CheckPermsTodo(ctx, dependent); err != nil {
-		if errors.Is(err, application_errors.ErrNoUser) {
+		if errors.Is(err, application_errors.ErrNoUserNoPrint(auth.GetUsername(ctx))) {
 			log.Printf("attempt to remove dependency %d:%d by nonexistant user", dependent, dependsOn)
 			return nil, application_errors.ErrPleaseAuth
 		}
@@ -112,7 +112,7 @@ func (*mutationResolver) RemoveDependencyTodo(ctx context.Context, dependent int
 
 func (*mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
 	if _, err := db.GetUserUsername(auth.GetUsername(ctx)); err != nil {
-		if errors.Is(err, application_errors.ErrNoUser) {
+		if errors.Is(err, application_errors.ErrNoUserNoPrint(auth.GetUsername(ctx))) {
 			return nil, err
 		}
 		return nil, application_errors.ErrUnspecified(err)
@@ -199,7 +199,7 @@ func (*mutationResolver) SignIn(ctx context.Context, user model.UserAuth) (*stri
 	}
 	userInfo, err := db.GetUserUsername(user.Name)
 	if err != nil {
-		if errors.Is(err, application_errors.ErrNoUser) {
+		if errors.Is(err, application_errors.ErrNoUserNoPrint(auth.GetUsername(ctx))) {
 			return nil, err
 		}
 		return nil, application_errors.ErrUnspecified(err)
@@ -238,7 +238,7 @@ func (*mutationResolver) SignIn(ctx context.Context, user model.UserAuth) (*stri
 
 func (*queryResolver) Todos(ctx context.Context, list int64) (*model.TaskList, error) {
 	if err := auth.CheckPermsList(ctx, list); err != nil {
-		if errors.Is(err, application_errors.ErrNoPermissionItemNoPrint(list, " list")) || errors.Is(err, application_errors.ErrCannotFetchTodoListNoPrint(list)) || errors.Is(err, application_errors.ErrNoUser) {
+		if errors.Is(err, application_errors.ErrNoPermissionItemNoPrint(list, " list")) || errors.Is(err, application_errors.ErrCannotFetchTodoListNoPrint(list)) || errors.Is(err, application_errors.ErrNoUserNoPrint(auth.GetUsername(ctx))) {
 			return nil, err
 		}
 		return nil, application_errors.ErrUnspecified(err)
@@ -248,22 +248,18 @@ func (*queryResolver) Todos(ctx context.Context, list int64) (*model.TaskList, e
 }
 
 func (*queryResolver) Lists(ctx context.Context) ([]int64, error) {
-	username := auth.GetUsername(ctx)
-	if username == "" {
-		return nil, errors.New("user was not found")
-	}
-	user, err := db.GetUserUsername(username)
+	user, err := db.GetUserUsername(auth.GetUsername(ctx))
 	if err != nil {
-		if errors.Is(err, application_errors.ErrNoUser) {
+		if errors.Is(err, application_errors.ErrNoUserNoPrint(auth.GetUsername(ctx))) {
 			return nil, err
 		}
 		return nil, application_errors.ErrUnspecified(err)
 	}
-	log.Println(GetPreloads(ctx))
 	taskLists, err := db.GetTaskListsUser(user.ID)
 	if err != nil {
 		return nil, application_errors.ErrUnspecified(err)
 	}
+	log.Println(GetPreloads(ctx))
 	return taskLists, nil
 }
 

@@ -1,24 +1,42 @@
 import { Home } from "./components/Home";
 import { SignUp } from "./components/SignUp";
 import { Mainpage } from "./components/Mainpage";
-import {
-  BrowserRouter as Router,
-  Switch,
-  Route,
-  Link
-} from "react-router-dom";
+import { BrowserRouter as Router, Route } from "react-router-dom";
+import {ApolloClient, ApolloProvider, InMemoryCache} from "@apollo/client";
 
 function App() {
-  return (
-    <div>
-      <Router>
-        <Route exact path="/" component={Home} />
-        <Route exact path="/signup" component={SignUp} />
-        <Route exact path="/mainpage" component={Mainpage} />
-        </Router>
+    const clientA = new ApolloClient({
+        uri: 'http://localhost:8080/query',
+        cache: new InMemoryCache()
+    });
 
-    </div>
-  );
+    let clientB = clientA;
+
+    const setJWT = (val) => {
+        clientB = new ApolloClient({
+            uri: 'http://localhost:8080/query',
+            cache: new InMemoryCache(),
+            headers: {
+                authorization: "Bearer " + val
+            }
+        });
+    }
+
+    function renderHome() {
+        return <Home sendJWT={setJWT} />;
+    }
+
+    return (
+        <Router forceRefresh={true}>
+            <ApolloProvider client={clientA}>
+                <Route exact path="/" render={renderHome} />
+                <Route exact path="/signup" component={SignUp} />
+            </ApolloProvider>
+            <ApolloProvider client={clientB}>
+                <Route exact path="/mainpage" component={Mainpage} />
+            </ApolloProvider>
+        </Router>
+    );
 }
 
 export default App;

@@ -45,7 +45,7 @@ func GetUserUsername(username string) (*model.User, error) {
 		if !errors.Is(err, sql.ErrNoRows) {
 			return nil, err
 		}
-		return nil, application_errors.ErrNoUser
+		return nil, application_errors.ErrNoUser(username)
 	}
 	var err error
 	user.Lists, err = GetTaskListsUser(user.ID)
@@ -59,7 +59,7 @@ func GetUserAuthUsername(username string) (*model.UserAuth, error) {
 	user := &model.UserAuth{}
 	if err := db.QueryRow("select username, password from users where username = ?", username).Scan(&user.Name, &user.Password); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, application_errors.ErrNoUser
+			return nil, application_errors.ErrNoUser(username)
 		}
 		return nil, err
 	}

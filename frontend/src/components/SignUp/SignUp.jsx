@@ -1,28 +1,55 @@
 import styles from "./SignUp.module.scss";
+import {Redirect} from "react-router";
+import { gql, useMutation } from "@apollo/client";
 
-export const SignUp = () => {
+const MUT = gql`mutation CreateUser($name: String!, $password: String!) { createUser(user: {name: $name, password: $password}){id}}`;
+
+export function SignUp () {
+    let username = "";
+    let password = "";
+    const [signUp, { data, loading, error }] = useMutation(MUT);
+
+    if (loading) return 'Submitting...';
+    if (error) return `Submission error! ${error.message}`;
+    if (data) return <Redirect to={'/'} />;
+
+    function handleUsername(node) {
+        username = node;
+    }
+
+    function handlePassword(node) {
+        password = node;
+    }
+
+    function formSubmit(e) {
+        e.preventDefault();
+        signUp({ variables: { name: username.value, password: password.value } });
+        username.value = '';
+        password.value = '';
+    }
+
     return (
         <div>
             <div className={styles.background}>
                 <div className={styles.sec1}>
-                <img src="./assets/Laptop.png" alt="" />
+                    <img src="./assets/Laptop.png" alt="" />
                 </div>
                 <div className={styles.sec2}>
-                <img src="./assets/StickyNote.png" alt="" />
-                <div className={styles.loginSection}>
-                <div className={styles.heading}>
-                <h1>Sign Up</h1>
-                </div>
-                <div>
-                    <div className={styles.inputSection}>
-                    <input className={styles.input} type="text" placeholder="Username"/>
-                    <input className={styles.input} type="text" placeholder="Password"/>
+                    <img src="./assets/StickyNote.png" alt="" />
+                    <div className={styles.loginSection}>
+                        <div className={styles.heading}>
+                            <h1>Sign Up</h1>
+                        </div>
+                        <form onSubmit={formSubmit}>
+                            <div className={styles.inputSection}>
+                                <input className={styles.input} ref={handleUsername} type="text" placeholder="Username"/>
+                                <input className={styles.input} ref={handlePassword} type="text" placeholder="Password"/>
+                            </div>
+                            <div className={styles.btnSection}>
+                                <input type={"submit"} value={"Submit"} className={styles.btn1}/>
+                            </div>
+                        </form>
                     </div>
-                    <div className={styles.btnSection}>
-                        <button className={styles.btn1}>Register!</button>
-                    </div>
-                </div>
-                </div>
                 </div>
             </div>
         </div>

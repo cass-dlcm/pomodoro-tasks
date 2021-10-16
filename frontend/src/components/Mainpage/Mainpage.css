@@ -4,102 +4,120 @@ body{
   background-color: #D7E8FF;
   color: #071B36;
   height: 100vh;
-  font-family: 'Roboto Slab', Roboto, Arial;
+  font-family: 'Roboto Slab', Roboto, Arial, sans-serif;
   font-weight: 700;
 }
 
+.timer-group {
+  position: absolute;
+  width: 33%;
+  height: 66%;
+  left: 10%;
+  top: 21%;
+}
+
+.todo-list-group {
+  position: absolute;
+  width: 47%;
+  height: 73%;
+  left: 50%;
+  top: 18%;
+}
+
 .notebook{
-  position: fixed;
-  bottom: 15vh;
-  right: 20vh;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
 }
 
 .clock{
-  position: fixed;
-  bottom: 60vh;
-  left: 40vh;
+  /* Clock */
+  margin: auto;
+  width: fit-content;
+
+  filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
 }
 
 .settime{
-  position: fixed;
-  bottom: 40vh;
-  left: 39vh;
+  /* Set a Time */
+  position: absolute;
+  width: 100%;
+  height: 14%;
+  left: 0;
+  top: 47%;
 
-  font-size: 60px;
+  font-family: Roboto Slab, Roboto, Arial, sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: xxx-large;
+  text-align: center;
+
+  color: #071B36;
+
 }
 
 .timeset{
-  position: fixed;
-  bottom: 25vh;
-  left: 50vh;
+  position: absolute;
+  width: 92%;
+  height: 14%;
+  left: 4%;
+  top: 67%;
 
-  font-size: 40px;
+  font-family: Roboto Slab, Roboto, Arial, sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: xx-large;
+  text-align: center;
 }
 
 .timebutton{
-  font-family: 'Roboto Slab', Roboto, Arial;
+  top: 88%;
+  font-family: 'Roboto Slab', Roboto, Arial, sans-serif;
   font-weight: 700;
   font-size: 40px;
   background-color: #071B36;
   color: white;
   border-radius: 10px;
-  padding: 20px 60px;
-}
-
-.timebutton a {
-  text-decoration: none;
-  color: white;
-}
-
-.countdown{
-  height: 1000px;
-  position: relative;
-  top: 10vh;
-  left: 20vh;
-  font-size: 70px;
- /*z-index: 1;*/
+  padding: 20px;
+  text-align: center;
 }
 
 .btn-section {
   position: absolute;
-  bottom: 50px;
-  left: 270px;
-  width: 340px;
+  width: 100%;
+  bottom: 0;
   display: flex;
   justify-content: space-between;
   z-index: 1;
 }
 
-.ToDoListApp{
-  position: fixed;
-  top: 15vh;
-  right: 20vh;
-  z-index: 1;
-
-  width: 520px;
-  min-height: 600px;
-  margin: 128px auto;
-
-}
-
 .complete {
-  text-decoration: line-through;
   opacity: 0.4;
 }
 
 .todo-form {
-  margin-bottom: 32px;
+  /* TodoForm */
+
+  position: absolute;
+  width: 60%;
+  height: 65px;
+  left: 20%;
+
+  border-radius: 5px;
 }
 
 .todo-input {
-  padding: 10px 10px 10px 10px;
-  border-radius: 4px 0 0 4px;
-  border: 2px solid black;
+  position: absolute;
+  border: 2px solid #000000;
+  height: 57px;
+  left: 10%;
+  top: 0;
+  width: 69%;
   outline: none;
-  width: 320px;
   background: transparent;
   color: black;
-
+  border-radius: 5px;
 }
 
 .todo-input::placeholder {
@@ -107,73 +125,87 @@ body{
 }
 
 .todo-button {
-  padding: 10px;
-  border: 2px solid #071B36;
-  border-radius: 0 4px 4px 0;
-  cursor: pointer;
-  outline: none;
-  background-color: #071B36;
-  color: #E1E1E1;
+  position: absolute;
+  width: 21%;
+  height: 63px;
+  right: 0;
+  top: 0;
+  font-family: Waiting for the Sunrise;
+  font-style: normal;
+  font-weight: 300;
+  font-size: 36px;
+  line-height: 60px;
+  text-align: center;
+  color: #FFFFFF;
+  background: #000000;
+  border: 2px solid #000000;
 }
 
 
 .todo-container {
   display: flex;
-  flex-direction: row;
-  position: relative;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0;
+  overflow:auto;
+
+  position: absolute;
+  left: 20%;
+  right: 10%;
+  top: 20%;
+  bottom: 18%;
 }
 
 .todo-row {
-  display: flex;
-  justify-content: space-between;
-  margin: 4px auto;
+  flex: none;
+  position: relative;
+  left: 10%;
+  width: 90%;
+  height: 40px;
   color: black;
 
-  width: 320px;
+  margin: 12px 0;
   background: transparent;
-  padding: 14px 16px 14px 16px;
-  border-radius: 4px 0 0 4px;
-
 }
 
-@media only screen and (min-width : 1224px) and (max-width: 1824px) {
-  .notebook img {
-    height: 500px;
-  }
-  .countdown{
-    top: 5vh;
-    left: -15vh;
-    font-size: 70px;
-    z-index: 1;
-    text-align: center;
-  }
-  .settime{
-    font-size: 50px;
-    left: 44vh;
-    bottom: 36vh;
-  }
-  .timeset{
-    font-size: 30px;
-    left: 45vh;
-    bottom: 24vh;
-  }
-  .timebutton{
-    bottom: 10vh;
-    left: 50vh;
-    font-size: 30px;
-    padding: 10px 30px;
-  }
-  .ToDoListApp{
-    top: 70px;
-    width: 350px;
-    left: 740px;
-    z-index: 1;
-  }
-  .todo-input {
-    padding: 10px 10px 10px 10px;
-    width: 200px;
-  }
-  .todo-button {
-    padding: 10px;
-  }
-}
+/*@media only screen and (min-width : 1224px) and (max-width: 1824px) {*/
+/*  .notebook img {*/
+/*    height: 500px;*/
+/*  }*/
+/*  .countdown{*/
+/*    top: 5vh;*/
+/*    left: -15vh;*/
+/*    font-size: 70px;*/
+/*    z-index: 1;*/
+/*    text-align: center;*/
+/*  }*/
+/*  .settime{*/
+/*    font-size: 50px;*/
+/*    left: 44vh;*/
+/*    bottom: 36vh;*/
+/*  }*/
+/*  .timeset{*/
+/*    font-size: 30px;*/
+/*    left: 45vh;*/
+/*    bottom: 24vh;*/
+/*  }*/
+/*  .timebutton{*/
+/*    bottom: 10vh;*/
+/*    left: 50vh;*/
+/*    font-size: 30px;*/
+/*    padding: 10px 30px;*/
+/*  }*/
+/*  .ToDoListApp{*/
+/*    top: 70px;*/
+/*    width: 350px;*/
+/*    left: 740px;*/
+/*    z-index: 1;*/
+/*  }*/
+/*  .todo-input {*/
+/*    padding: 10px 10px 10px 10px;*/
+/*    width: 200px;*/
+/*  }*/
+/*  .todo-button {*/
+/*    padding: 10px;*/
+/*  }*/
+/*}*/

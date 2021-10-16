@@ -9,7 +9,6 @@ import (
 	"time"
 )
 
-var ErrNoUser = errors.New("no user found")
 var ErrUserExists = errors.New("user already exists")
 var ErrPleaseAuth = errors.New("please log in and try again")
 var ErrNoDependency = errors.New("no dependency found")
@@ -69,4 +68,13 @@ func ErrPleaseWaitForAuth(username string, timeout int64) error {
 
 func ErrPleaseWaitForAuthNoPrint(username string, timeout int64) error {
 	return fmt.Errorf("user %s is on login timeout, please try again in %d seconds", username, timeout)
+}
+
+func ErrNoUserNoPrint(username string) error {
+	return fmt.Errorf("no user found with name %s", username)
+}
+
+func ErrNoUser(username string) error {
+	log.Println(ErrNoUserNoPrint(username))
+	return fmt.Errorf("no user found with name %s", username)
 }
