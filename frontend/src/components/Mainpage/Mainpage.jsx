@@ -1,21 +1,11 @@
 import styles from "./Mainpage.css";
-//import notebook from './assets/notebook.svg';
-//import clock from './assets/Clock.svg';
 import { Clock } from "./Clock";
 import {BreakClock} from "./Break Clock"
-import {
-  BrowserRouter as Router,
-  Switch,
-  Route,
-  Link
-} from "react-router-dom";
 import { ToDoList }  from "./ToDoList";
 import {gql, useQuery} from "@apollo/client";
 import {useState} from "react";
 
-
-
-export const Mainpage = (props) => {
+export const Mainpage = () => {
     const [skip, setSkip] = useState(false);
     const [list, setList] = useState({id: -1});
     const [workTime, setWorkTime] = useState(true);
@@ -24,6 +14,14 @@ export const Mainpage = (props) => {
     if (data) {setList({id: data.lists[0]}); setSkip(true);}
     if (loading) return "Loading lists...";
     if (error) return `Error! ${error.message}`;
+
+    function startWorkTime() {
+        setWorkTime(true)
+    }
+
+    function startBreakTime() {
+        setWorkTime(false)
+    }
 
     return(
         <div>
@@ -36,10 +34,10 @@ export const Mainpage = (props) => {
                     <div>5 Break Minutes</div>
                 </div>
                 <div className="btn-section">
-                    <button className="timebutton" onClick={() => setWorkTime(true)}>
+                    <button className="timebutton" onClick={startWorkTime}>
                         Begin!
                     </button>
-                    <button className="timebutton" onClick={() => setWorkTime(false)}>
+                    <button className="timebutton" onClick={startBreakTime}>
                         Break!
                     </button>
                 </div>
@@ -50,5 +48,4 @@ export const Mainpage = (props) => {
             </section>
         </div>
     );
-
 }

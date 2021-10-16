@@ -1,13 +1,15 @@
 import React, {useState} from 'react';
 import ToDoForm from './ToDoForm';
 import ToDo from './ToDo';
-import {useMutation, useQuery, gql} from "@apollo/client";
-import {ToDoCheckbox} from "./ToDoCheckbox";
+import {useQuery, gql} from "@apollo/client";
 
 export const ToDoList = (props) => {
-    const [skip, setSkip] = useState(false);
-    const QUERYTWO = gql`query GetTodos($listId: ID!) {todos(list: $listId){name, tasks {id, name, completedAt}}}`
-    const {data, loading, error} = useQuery(QUERYTWO, {variables: {listId: props.list.id}, skip: skip})
+    const [skip, setSkip] = useState(false),
+        QUERYTWO = gql`query GetTodos($listId: ID!) {todos(list: $listId){name, tasks {id, name, completedAt}}}`, {
+            data: data,
+            loading: loading,
+            error: error
+        } = useQuery(QUERYTWO, {variables: {listId: props.list.id}, skip: skip});
     if (loading) return 'Loading list items...';
     if (error) return `Error! ${error.message}`;
     if (data) {
@@ -54,9 +56,5 @@ export const ToDoList = (props) => {
         </>
     }
 
-    return (
-        <>
-            <ToDoForm list={props.list}/>
-        </>
-    );
+    return <ToDoForm list={props.list}/>;
 }

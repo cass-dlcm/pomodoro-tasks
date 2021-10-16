@@ -13,7 +13,7 @@ export const BreakClock  = (size, isPlaying) => {
   }
 
   return(
-    <div class="clock">
+    <div className="clock">
       <CountdownCircleTimer
         key={key}
         isPlaying 

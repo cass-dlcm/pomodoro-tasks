@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {gql, useMutation, useQuery} from "@apollo/client";
-import styles from "../../SignUp/SignUp.module.scss";
+import { gql, useMutation } from "@apollo/client";
 
 function ToDoForm(props){
     const [input, setInput] = useState('');
@@ -12,7 +11,7 @@ function ToDoForm(props){
         inputRef.current.focus();
     });
 
-    const handleChange = e => {
+    function handleChange(e) {
         setInput(e.target.value);
     };
 
@@ -20,15 +19,21 @@ function ToDoForm(props){
         return `Error: ${error.message}`;
     }
 
+    if (loading) {
+        return "Loading...";
+    }
+
     if (data) {
         props.list.tasks.push({id: data.createTodo.id, name: input, completedAt: null});
     }
 
+    function formSubmit(e) {
+        e.preventDefault();
+        createTodo({variables: {name: input, list: props.list.id}})
+    }
+
     return (
-        <form onSubmit={e => {
-            e.preventDefault();
-            createTodo({variables: {name: input, list: props.list.id}})
-        }} className='todo-form'>
+        <form onSubmit={formSubmit} className='todo-form'>
             <input
                 placeholder='Add a To Do'
                 value={input}

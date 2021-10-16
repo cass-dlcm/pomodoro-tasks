@@ -6,12 +6,34 @@ const MUT = gql`mutation SignIn($name: String!, $pass: String!) { signIn(user: {
 
 export function Home (props) {
     let history = useHistory();
-    let username;
-    let password;
-    const [signIn, { data, loading, error }] = useMutation(MUT);
+    let username = "";
+    let password = "";
+    const x = useMutation(MUT);
 
-    if (loading) return 'Submitting...';
-    if (error) return `Submission error! ${error.message}`;
+    if (x[1].loading) return 'Submitting...';
+    if (x[1].error) return `Submission error! ${x[1].error.message}`;
+
+    function signupClick() {
+        history.push("/signup")
+    }
+
+    function handleUsername(node) {
+        username = node;
+    }
+
+    function handlePassword(node) {
+        password = node;
+    }
+
+    function login(e) {
+        e.preventDefault();
+        x[0]({variables: {name: username.value, pass: password.value}}).then(r => {
+            props.sendJWT(r.data.toString());
+            history.push('/mainpage')
+        });
+        username.value = '';
+        password.value = '';
+    }
 
     return (
         <div>
@@ -25,28 +47,16 @@ export function Home (props) {
                         <div className={styles.heading}>
                             <h1>Welcome to Stidy</h1>
                         </div>
-                        <form onSubmit={e => {
-                            e.preventDefault();
-                            signIn({variables: {name: username.value, pass: password.value}}).then(r => {
-                                props.sendJWT(r.data.toString());
-                                history.push('/mainpage')
-                            });
-                            username.value = '';
-                            password.value = '';
-                        }}>
+                        <form onSubmit={login}>
                             <div className={styles.inputSection}>
-                                <input className={styles.input} ref={node => {
-                                    username = node;
-                                }} type="text" placeholder="Username"/>
-                                <input className={styles.input} ref={node => {
-                                    password = node;
-                                }} type="text" placeholder="Password"/>
+                                <input className={styles.input} ref={handleUsername} type="text" placeholder="Username"/>
+                                <input className={styles.input} ref={handlePassword} type="text" placeholder="Password"/>
                             </div>
                             <div className={styles.btnSection}>
                                 <button type={"submit"} className={styles.btn1}>
                                     Log In
                                 </button>
-                                <button onClick={() => {history.push("/signup")}} type="button" className={styles.btn2}>
+                                <button onClick={signupClick} type="button" className={styles.btn2}>
                                     Sign Up
                                 </button>
                             </div>

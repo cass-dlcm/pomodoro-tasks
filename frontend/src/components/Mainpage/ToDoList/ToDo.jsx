@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ToDoCheckbox } from './ToDoCheckbox';
 
 const ToDo = (props) => {

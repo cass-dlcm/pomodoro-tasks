@@ -21,10 +21,15 @@ function App() {
             }
         });
     }
+
+    function renderHome() {
+        return <Home sendJWT={setJWT} />;
+    }
+
     return (
         <Router forceRefresh={true}>
             <ApolloProvider client={clientA}>
-                <Route exact path="/" render={() => <Home sendJWT={setJWT} />} />
+                <Route exact path="/" render={renderHome} />
                 <Route exact path="/signup" component={SignUp} />
             </ApolloProvider>
             <ApolloProvider client={clientB}>
